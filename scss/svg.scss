@@ -1,0 +1,8 @@
+#canvas{
+    .beam{
+        stroke: #1A237E;
+        &:hover{
+            stroke: #C5CAE9;
+        }
+    }
+}
