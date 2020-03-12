@@ -1,8 +1,36 @@
-#canvas{
-    .beam{
+#canvas {
+    .beam {
+        cursor: pointer;
         stroke: #1A237E;
-        &:hover{
+        fill: #26A69A;
+
+        &:hover {
             stroke: #C5CAE9;
+            fill: #B2DFDB;
+        }
+
+        polygon {
+            stroke: none;
+        }
+
+        path{
+            stroke-width: 2px;
+        }
+    }
+    .distrForce{
+        cursor: pointer;
+        stroke: #1B5E20;
+        fill: #66BB6A;
+        fill-opacity: 0.1;
+
+        &:hover {
+            stroke: #C8E6C9;
+            fill: #C8E6C9;
+            stroke-opacity: 0.7;
+        }
+
+        polygon {
+            stroke: none;
         }
     }
 }
