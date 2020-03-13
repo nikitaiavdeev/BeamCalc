@@ -1,5 +1,6 @@
 <template>
   <v-app-bar
+    clipped-left
     app
     color="indigo"
     dark
@@ -31,7 +32,7 @@
     </v-toolbar-items>
 
     <v-spacer></v-spacer>
-    <v-toolbar-title>CrackPan</v-toolbar-title>
+    <v-toolbar-title>FreeBeam</v-toolbar-title>
     <v-spacer></v-spacer>
 
     <span>{{ this.$store.state.appVersion }}</span>

@@ -1,7 +1,5 @@
 <template>
   <v-card outlined>
-    <v-card-title dense>Panel</v-card-title>
-
     <v-card-text>
       <v-row>
         <v-col>
@@ -18,9 +16,11 @@
               <path  :d="section.path"/>
             </g>
 
-            <g v-for="(item, index) in forces.distributed" :key="'distrForce' + index"  class='distrForce'>
-              <path  :points="item.path + 'z'"/>
-              <path  :points="item.path" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+            <g v-for="(item, index) in loadBCs.items" :key="item.type + index"  class='loadBCs'>
+              <g v-if="item.type === 'distributedForce'" calss="distrForce">
+                <path  :points="item.path + 'z'"/>
+                <path  :points="item.path" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+              </g>
             </g>
           </svg>
         </v-col>
@@ -37,7 +37,7 @@
 
   export default {
     computed:{
-      ...mapState(['beams', 'forces']),
+      ...mapState(['beams', 'loadBCs']),
       ...mapMutations(['updateBeamsSVG', 'updateForcesSVG']),
       ...mapStatesTwoWay({
         screen: state => state.screen,
@@ -55,7 +55,7 @@
         this.screen.maxX = document.getElementById('canvas').clientWidth - 2 * MARGIN_X;
         this.screen.maxY = document.getElementById('canvas').clientHeight- 2 * MARGIN_Y;
         this.updateBeamsSVG;
-        this.updateForcesSVG;
+        this.updateLoadBCsSVG;
       })
     },
 
@@ -68,7 +68,7 @@
         this.screen.maxX = document.getElementById('canvas').clientWidth - 2 * MARGIN_X;
         this.screen.maxY = document.getElementById('canvas').clientHeight- 2 * MARGIN_Y;
         this.updateBeamsSVG;
-        this.updateForcesSVG;
+        this.updateLoadBCsSVG;
       }
     }
   }

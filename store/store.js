@@ -13,6 +13,14 @@ const
   MIN_FORCE_HEIGHT = 0.03,
   MAX_FORCE_HEIGHT = 0.30;
 
+const defaultLoadBC = {
+  type: '',
+  locA: 0,
+  locB: 0,
+  valA: 0,
+  valB: 0,
+  path: ''
+};
 
 const defaultState = {
   screen: {
@@ -45,16 +53,18 @@ const defaultState = {
       polygonWhite: '',
     }],
   },
-  forces: {
+  loadBCs: {
     maxForce: 100,
     minForce: 10,
-    distributed: [{
+    items: [{
+      type: 'distributedForce',
       locA: 2,
       locB: 4,
       valA: 100,
       valB: 50,
       path: ''
     }, {
+      type: 'distributedForce',
       locA: 2,
       locB: 4,
       valA: -90,
@@ -75,7 +85,11 @@ const defaultState = {
 export default new Vuex.Store({
   state: Object.assign({}, defaultState),
 
-  getters: {},
+  getters: {
+    getLoadBC: (state) => (id) => {
+      return Object.assign({}, state.loadBCs.items[id] || defaultLoadBC);
+    },
+  },
 
   mutations: {
     resetState(state) {
@@ -125,12 +139,12 @@ export default new Vuex.Store({
         section.path = 'M' + getPoint(x0, -beams.maxHeight) + 'L' + getPoint(x1, -beams.maxHeight) + 'M' + getPoint(x0, beams.maxHeight) + 'L' + getPoint(x1, beams.maxHeight);
       });
     },
-    updateForcesSVG: state => {
+    updateLoadBCsSVG: state => {
       const
-        forces = state.forces,
+        loadBCs = state.loadBCs,
         screen = state.screen,
-        distributed = forces.distributed,
-        ySlope = (MAX_FORCE_HEIGHT - MIN_FORCE_HEIGHT) / (forces.minForce - forces.maxForce),
+        items = loadBCs.items,
+        ySlope = (MAX_FORCE_HEIGHT - MIN_FORCE_HEIGHT) / (loadBCs.minForce - loadBCs.maxForce),
         yScale = Number.isFinite(ySlope) ? ySlope : 0.0;
 
       const
@@ -138,13 +152,13 @@ export default new Vuex.Store({
           return MARGIN_X + x * screen.scaleX;
         },
         getY = (y) => {
-          return MARGIN_Y + screen.maxY * 0.5 * (1 + Math.sign(y) * (MAX_FORCE_HEIGHT - yScale * (Math.abs(y) - forces.maxForce)));
+          return MARGIN_Y + screen.maxY * 0.5 * (1 + Math.sign(y) * (MAX_FORCE_HEIGHT - yScale * (Math.abs(y) - loadBCs.maxForce)));
         },
         getPoint = (x, y) => {
           return getX(x) + ',' + getY(y);
         };
 
-      distributed.forEach(f => {
+        items.forEach(f => {
         f.path = 'M' + getX(f.locA) + ',' + Math.sign(f.valA) * screen.beamY + 'L' + getPoint(f.locA, f.valA) + 'L' + getPoint(f.locB, f.valB) + 'L' + getX(f.locB) + ',' + Math.sign(f.valB) * screen.beamY;
       });
     }

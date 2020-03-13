@@ -11,6 +11,9 @@ new Vue({
   vuetify,
   icons:{
     iconfont: 'md',
+    values:{
+      beamIcon: './icons/beam.svg',
+    }
   },
   render: h => h(App)
 }).$mount('#app')
