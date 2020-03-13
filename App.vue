@@ -13,7 +13,7 @@
 
         <v-row>
           <v-col>
-            <LoadTable />
+            <LoadBCsTable />
           </v-col>
           <v-col>
             <BeamTable />
@@ -30,7 +30,7 @@
   import NavigationDrawer from './components/NavigationDrawer'
   import Header from './components/Header'
   import BeamCanvas from './components/BeamCanvas'
-  import LoadTable from './components/LoadTable'
+  import LoadBCsTable from './components/LoadBCsTable'
   import BeamTable from './components/BeamTable'
 
   export default {
@@ -39,7 +39,7 @@
       NavigationDrawer,
       Header,
       BeamCanvas,
-      LoadTable,
+      LoadBCsTable,
       BeamTable
     }
   }

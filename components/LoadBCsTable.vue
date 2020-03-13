@@ -1,23 +1,11 @@
 <template>
   <v-card outlined>
-    <v-card-title dense>Beam</v-card-title>
+    <v-card-title dense>Loads and BCs</v-card-title>
 
     <v-card-text>
-      <v-data-table :headers= "headers" :items="beams.sections" disable-sort hide-default-footer>
+      <v-data-table :headers= "headers" :items="loadBCs.items" disable-sort hide-default-footer>
         <template v-slot:top>
           <v-dialog v-model="dialog" max-width="1000px">
-            <template v-slot:activator="{ on }">
-              <v-btn color="primary"
-                fab
-                small
-                dark
-                absolute
-                top
-                right
-                v-on="on">
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
-            </template>
             <v-card>
               <v-card-title>
                 <span class="headline">{{ formTitle }}</span>
@@ -25,8 +13,8 @@
 
               <v-card-text>
                 <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
+                  <v-row v-if = "dialogType === 'Beam'">
+                    <v-col cols="12">
                       <v-select :items="['Yes','No']" v-model="editedItem.isBroken" label="Is stiffener broken?"></v-select>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
@@ -36,6 +24,25 @@
                       <v-text-field v-model="editedItem.modulus" label="Young's modulus" suffix="msi"></v-text-field>
                     </v-col>
                   </v-row>
+
+                  <v-row>
+                    <v-col cols="12">
+                      <span class="black--text">Stiffener Geometry</span>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field v-model="editedItem.area" label="Cross-section area" suffix="in²"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field v-model="editedItem.inertia" label="Moment of inertia" suffix="in⁴"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field v-model="editedItem.oml" label="OML to stiffener centroid" suffix="in"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
+                      <v-text-field v-model="editedItem.iml" label="IML to stiffener centroid" suffix="in"></v-text-field>
+                    </v-col>
+                  </v-row>
+
                 </v-container>
               </v-card-text>
 
@@ -68,25 +75,30 @@
 </template>
 
 <script>
-  import { mapState, mapGetters } from 'vuex'
+  import mapStatesTwoWay from '../store/mapTwoWay'
+  import { mapState } from 'vuex'
 
   export default {
     computed:{
       formTitle () {
-        return this.editedIndex === -1 ? 'New Section' : 'Edit Section'
+        return (this.editedIndex === -1 ? 'New ' : 'Edit ') + this.dialogType;
       },
-      ...mapState(['beams']),
-      ...mapGetters(['getBeam']),
+      ...mapState(['loadBCs']),
+      ...mapStatesTwoWay({
+          dialog: state => state.dialog,
+          dialogType: state => state.dialogType
+        }, function (value) {
+            this.$store.commit('updateCurrent', value)
+        }),
     },
 
     data: () => ({
-      dialog: false,
       headers: [
-        { text: 'Length (in)', value: 'length'},
-        { text: 'Start area (in²)', value: 'areaA' },
-        { text: 'End area (in²)', value: 'areaB' },
-        { text: "Start inertia (in⁴)", value: 'inerA' },
-        { text: 'End inertia (in⁴)', value: 'inerB' },
+        { text: 'Type', value: 'type'},
+        { text: "Start Position (in)", value: 'start' },
+        { text: 'End Position (in)', value: 'end' },
+        { text: 'Start Magnitude (lb or lb-in)', value: 'startMag' },
+        { text: 'End Magnitude (lb or lb-in)', value: 'endMag' },
         { text: 'Actions', value: 'action', sortable: false },
       ],
       editedItem: null,
@@ -95,8 +107,8 @@
     }),
 
     created: function() {
-      this.editedItem = this.getBeam('default');
-      this.defaultItem = this.getBeam('default');
+      this.editedItem = this.$store.getters.getLoadBC('default');
+      this.defaultItem = this.$store.getters.getLoadBC('default');
     },
 
     watch: {
@@ -107,18 +119,18 @@
 
     methods: {
       editItem (item) {
-        this.editedIndex = this.beams.sections.indexOf(item);
-        this.editedItem = this.getBeam(this.editedIndex);
+        this.editedIndex = this.items.indexOf(item);
+        this.editedItem = this.$store.getters.getStiffener(this.editedIndex);
         this.dialog = true;
       },
 
       deleteItem (item) {
-        const index = this.beams.sections.indexOf(item);
-        confirm('Are you sure you want to delete this stiffener?') && this.beams.sections.splice(index, 1)
+        const index = this.items.indexOf(item);
+        confirm('Are you sure you want to delete this stiffener?') && this.items.splice(index, 1)
       },
 
       close () {
-        this.dialog = false
+        this.dialog = false;
         
         setTimeout(() => {
           this.editedItem = Object.assign({}, this.defaultItem)
@@ -128,11 +140,11 @@
 
       save () {
         if (this.editedIndex > -1) {
-          Object.assign(this.beams.sections[this.editedIndex], this.editedItem)
+          Object.assign(this.items[this.editedIndex], this.editedItem)
         } else {
-          this.beams.sections.push(this.editedItem)
+          this.items.push(this.editedItem)
         }
-        this.close()
+        this.close();
       },
 
       selectFastType(item) {

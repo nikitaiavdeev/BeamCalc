@@ -22,6 +22,17 @@ const defaultLoadBC = {
   path: ''
 };
 
+const defaultBeam = {
+  length: 1.0,
+  areaA: 1.0,
+  areaB: 1.0,
+  inerA: 1.0,
+  inerB: 1.0,
+  path: '',
+  polygonFill: '',
+  polygonWhite: '',
+};
+
 const defaultState = {
   screen: {
     maxX: 0,
@@ -57,14 +68,14 @@ const defaultState = {
     maxForce: 100,
     minForce: 10,
     items: [{
-      type: 'distributedForce',
+      type: 'distributed force',
       locA: 2,
       locB: 4,
       valA: 100,
       valB: 50,
       path: ''
     }, {
-      type: 'distributedForce',
+      type: 'distributed force',
       locA: 2,
       locB: 4,
       valA: -90,
@@ -88,6 +99,9 @@ export default new Vuex.Store({
   getters: {
     getLoadBC: (state) => (id) => {
       return Object.assign({}, state.loadBCs.items[id] || defaultLoadBC);
+    },
+    getBeam: (state) => (id) => {
+      return Object.assign({}, state.beams.sections[id] || defaultBeam);
     },
   },
 

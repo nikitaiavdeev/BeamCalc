@@ -13,11 +13,12 @@
             stroke: none;
         }
 
-        path{
+        path {
             stroke-width: 2px;
         }
     }
-    .distrForce{
+
+    .distrForce {
         cursor: pointer;
         stroke: #1B5E20;
         fill: #66BB6A;
@@ -33,4 +34,19 @@
             stroke: none;
         }
     }
+}
+
+#svg-toolTip {
+    background: rgba(97, 97, 97, 0.9);
+    color: #FFFFFF;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 22px;
+    display: inline-block;
+    padding: 5px 16px;
+    position: fixed;
+    text-transform: initial;
+    width: auto;
+    opacity: 1;
+    pointer-events: none;
 }
