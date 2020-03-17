@@ -8,9 +8,9 @@ export const
   MARGIN_Y = 10;
 
 const
-  MIN_BEAM_HEIGHT = 0.02,
-  MAX_BEAM_HEIGHT = 0.05,
-  MIN_FORCE_HEIGHT = 0.03,
+  MIN_BEAM_HEIGHT = 0.01,
+  MAX_BEAM_HEIGHT = 0.03,
+  MIN_FORCE_HEIGHT = 0.05,
   MAX_FORCE_HEIGHT = 0.30;
 
 const defaultLoadBC = {
@@ -43,11 +43,11 @@ const defaultState = {
   beams: {
     totalLength: 30,
     maxHeight: 1,
-    minHeight: 1,
+    minHeight: 1.0,
     sections: [{
       length: 10,
       areaA: 1.0,
-      areaB: 1,
+      areaB: 1.0,
       inerA: 1.0,
       inerB: 1.0,
       path: '',
@@ -55,8 +55,8 @@ const defaultState = {
       polygonWhite: '',
     }, {
       length: 20,
-      areaA: 1,
-      areaB: 1,
+      areaA: 1.0,
+      areaB: 1.0,
       inerA: 1.0,
       inerB: 1.0,
       path: '',
@@ -66,20 +66,20 @@ const defaultState = {
   },
   loadBCs: {
     maxForce: 100,
-    minForce: 10,
+    minForce: 20,
     items: [{
       type: 'distributed force',
       locA: 2,
       locB: 4,
-      valA: 100,
-      valB: 50,
+      valA: 20,
+      valB: 100,
       path: ''
     }, {
       type: 'distributed force',
       locA: 2,
       locB: 4,
-      valA: -90,
-      valB: -60,
+      valA: -50,
+      valB: -100,
       path: ''
     }]
   },
@@ -91,7 +91,6 @@ const defaultState = {
     show: false
   }
 };
-
 
 export default new Vuex.Store({
   state: Object.assign({}, defaultState),
@@ -128,19 +127,19 @@ export default new Vuex.Store({
           return MARGIN_X + x * screen.scaleX;
         },
         getY = (y) => {
-          return MARGIN_Y + screen.maxY * 0.5 * (1 + Math.sign(y) * (MAX_BEAM_HEIGHT - yScale * (Math.abs(y) - beams.maxHeight)));
+          return screen.maxY * 0.5 + screen.maxY * Math.sign(y) * (MAX_BEAM_HEIGHT - yScale * (Math.abs(y) - beams.maxHeight));
         },
         getPoint = (x, y) => {
           return getX(x) + ',' + getY(y);
         }
-      
+
       let x0 = 0,
         x1 = 0,
         length, heightA, heightB;
-      
+
       //set screen constants
       screen.scaleX = screen.maxX / beams.totalLength;
-      screen.beamY = getY(beams.maxHeight) + 2;
+      screen.beamY = getY(beams.maxHeight) - screen.maxY * 0.5 + 2;
 
       sections.forEach(section => {
         length = section.length;
@@ -154,27 +153,37 @@ export default new Vuex.Store({
       });
     },
     updateLoadBCsSVG: state => {
-      const
-        loadBCs = state.loadBCs,
-        screen = state.screen,
-        items = loadBCs.items,
-        ySlope = (MAX_FORCE_HEIGHT - MIN_FORCE_HEIGHT) / (loadBCs.minForce - loadBCs.maxForce),
-        yScale = Number.isFinite(ySlope) ? ySlope : 0.0;
+      let points;
 
-      const
-        getX = (x) => {
-          return MARGIN_X + x * screen.scaleX;
-        },
-        getY = (y) => {
-          return MARGIN_Y + screen.maxY * 0.5 * (1 + Math.sign(y) * (MAX_FORCE_HEIGHT - yScale * (Math.abs(y) - loadBCs.maxForce)));
-        },
-        getPoint = (x, y) => {
-          return getX(x) + ',' + getY(y);
-        };
-      
-      items.forEach(f => {
-        f.path = getX(f.locA) + ',' + Math.sign(f.valA) * screen.beamY + ' ' + getPoint(f.locA, f.valA) + ' ' + getPoint(f.locB, f.valB) + ' ' + getX(f.locB) + ',' + Math.sign(f.valB) * screen.beamY;
+      state.loadBCs.items.forEach(f => {
+        points = get4Points(state, f, state.loadBCs.minForce, state.loadBCs.maxForce, MIN_FORCE_HEIGHT, MAX_FORCE_HEIGHT);
+        f.path = points[0] + ' ' + points[1] + ' ' + points[2] + ' ' + points[3];
       });
     }
   },
 });
+
+const get4Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
+  const
+    ySlope = (maxScreenH - minScreenH) / (minH - maxH),
+    yScale = Number.isFinite(ySlope) ? ySlope : 0.0;
+
+  const
+    getX = (x) => {
+      return MARGIN_X + x * state.screen.scaleX;
+    },
+    getY = (y) => {
+      return state.screen.maxY * 0.5 + Math.sign(y) * (state.screen.beamY + state.screen.maxY * (maxScreenH - yScale * (Math.abs(y) - maxH)));
+    },
+    getPoint = (x, y) => {
+      return getX(x) + ',' + getY(y);
+    };
+
+  console.log(f.valA, maxScreenH);
+  return [
+    getX(f.locA) + ',' + (Math.sign(f.valA) * state.screen.beamY + state.screen.maxY * 0.5),
+    getPoint(f.locA, f.valA),
+    getPoint(f.locB, f.valB),
+    getX(f.locB) + ',' + (Math.sign(f.valB) * state.screen.beamY + state.screen.maxY * 0.5)
+  ];
+}

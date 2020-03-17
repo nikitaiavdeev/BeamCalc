@@ -1,12 +1,21 @@
+$beam-stroke: #1A237E;
+$beam-fill: #26A69A;
+$beam-hover: #B2DFDB;
+$distrForce-stroke: #1B5E20;
+$distrForce-fill: #66BB6A;
+$distrForce-hover: #C8E6C9;
+
+
 #canvas {
     .beam {
         cursor: pointer;
-        stroke: #1A237E;
-        fill: #26A69A;
+        stroke: $beam-stroke;
+        fill: $beam-fill;
+        fill-opacity: 0.7;
 
         &:hover {
-            stroke: #C5CAE9;
-            fill: #B2DFDB;
+            stroke: $beam-hover;
+            fill: $beam-hover;
         }
 
         polygon {
@@ -20,14 +29,14 @@
 
     .distrForce {
         cursor: pointer;
-        stroke: #1B5E20;
-        fill: #66BB6A;
+        stroke: $distrForce-stroke;
+        fill: $distrForce-fill;
         fill-opacity: 0.1;
 
 
         &:hover {
-            stroke: #C8E6C9;
-            fill: #C8E6C9;
+            stroke: $distrForce-hover;
+            fill: $distrForce-hover;
             stroke-opacity: 0.7;
 
             polyline {
@@ -42,13 +51,6 @@
             marker-end: url("#arrow-distrForce");
         }
     }
-}
-
-#arrow-distrForce {
-    fill: #1B5E20;
-}
-#arrow-distrForce-hover {
-    fill: #C8E6C9;
 }
 
 #svg-toolTip {
@@ -69,4 +71,12 @@
     span {
         flex: 1 1 auto;
     }
+}
+
+/* makers */
+#arrow-distrForce {
+    fill: $distrForce-stroke;
+}
+#arrow-distrForce-hover {
+    fill: $distrForce-hover;
 }

@@ -5,10 +5,10 @@
         <v-col>
           <svg id="canvas" width="100%" height="400px">
             <defs>
-              <marker id="arrow-distrForce" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+              <marker id="arrow-distrForce" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M0,0L10,5L0,10z" stroke="none"/>
               </marker>
-              <marker id="arrow-distrForce-hover" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+              <marker id="arrow-distrForce-hover" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M0,0L10,5L0,10z" stroke="none"/>
               </marker>
             </defs>
@@ -18,18 +18,21 @@
                 <polygon  :points="section.polygonFill"/>
                 <path  :d="section.path"/>
                 <tooltip>
-                  <span>Beam # : {{index+1}}</span>
-                  <span>Area A : {{section.areaA}} in²</span>
-                  <span>Area B : {{section.areaB}} in²</span>
+                  <span>Beam #{{index+1}}</span>
+                  <span>Length {{section.length}} in</span>
                 </tooltip>
               </g>
             </g>
 
             <g>
               <g v-for="(item, index) in loadBCs.items" :key="item.type + index">
-                <g v-if="item.type === 'distributed force'" class="distrForce">
+                <g v-if="item.type === 'distributed force'" class="distrForce" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <polygon  :points="item.path" stroke="none"/>
                   <polyline :points="item.path"/>
+                  <tooltip>
+                    <span>{{item.valA}} lb/in at {{item.locA}} in</span>
+                    <span>{{item.valB}} lb/in at {{item.locB}} in</span>
+                </tooltip>
                 </g>
               </g>
             </g>
@@ -47,6 +50,8 @@
   import { MARGIN_X, MARGIN_Y } from '../store/store.js'
   import SVGToolTip from './SVGToolTip'
   import '../scss/svg.scss'
+
+  let t;
 
   export default {
     components: {
@@ -92,14 +97,17 @@
         this.updateLoadBCsSVG;
       },
       onHover(e) {
-        const caller = e.target.parentElement,
-          rect = caller.getBoundingClientRect();
-        this.toolTipInner = caller.getElementsByTagName('tooltip')[0].innerHTML;
-        this.toolTipShow = true;
-        this.toolTipTop = 0.5*(rect.top + rect.bottom);
-        this.toolTipLeft = 0.5*(rect.left + rect.right);
+        t = setTimeout(() => {  
+          const caller = e.target.parentElement,
+            rect = caller.getBoundingClientRect();
+          this.toolTipInner = caller.getElementsByTagName('tooltip')[0].innerHTML;
+          this.toolTipShow = true;
+          this.toolTipTop = 0.5*(rect.top + rect.bottom);
+          this.toolTipLeft = 0.5*(rect.left + rect.right);
+        }, 1000);
       },
       onHoverCancel() {
+        clearTimeout(t);
         this.toolTipShow = false;
       }
     }
