@@ -171,9 +171,9 @@ export default new Vuex.Store({
         getPoint = (x, y) => {
           return getX(x) + ',' + getY(y);
         };
-
-        items.forEach(f => {
-        f.path = 'M' + getX(f.locA) + ',' + Math.sign(f.valA) * screen.beamY + 'L' + getPoint(f.locA, f.valA) + 'L' + getPoint(f.locB, f.valB) + 'L' + getX(f.locB) + ',' + Math.sign(f.valB) * screen.beamY;
+      
+      items.forEach(f => {
+        f.path = getX(f.locA) + ',' + Math.sign(f.valA) * screen.beamY + ' ' + getPoint(f.locA, f.valA) + ' ' + getPoint(f.locB, f.valB) + ' ' + getX(f.locB) + ',' + Math.sign(f.valB) * screen.beamY;
       });
     }
   },

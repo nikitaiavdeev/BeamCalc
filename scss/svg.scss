@@ -24,16 +24,31 @@
         fill: #66BB6A;
         fill-opacity: 0.1;
 
+
         &:hover {
             stroke: #C8E6C9;
             fill: #C8E6C9;
             stroke-opacity: 0.7;
+
+            polyline {
+                marker-start: url("#arrow-distrForce-hover");
+                marker-end: url("#arrow-distrForce-hover");
+            }
         }
 
-        polygon {
-            stroke: none;
+        polyline {
+            stroke-width: 2px;
+            marker-start: url("#arrow-distrForce");
+            marker-end: url("#arrow-distrForce");
         }
     }
+}
+
+#arrow-distrForce {
+    fill: #1B5E20;
+}
+#arrow-distrForce-hover {
+    fill: #C8E6C9;
 }
 
 #svg-toolTip {
@@ -42,11 +57,16 @@
     border-radius: 4px;
     font-size: 14px;
     line-height: 22px;
-    display: inline-block;
+    display: flex;
+    flex-flow: column;
     padding: 5px 16px;
     position: fixed;
     text-transform: initial;
     width: auto;
     opacity: 1;
     pointer-events: none;
+
+    span {
+        flex: 1 1 auto;
+    }
 }
