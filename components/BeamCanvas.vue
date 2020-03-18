@@ -29,6 +29,8 @@
                 <g v-if="item.type === 'distributed force'" class="distrForce" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <polygon  :points="item.path" stroke="none"/>
                   <polyline :points="item.path"/>
+                  <text :x="item.textA.x" :y="item.textA.y">{{item.valA}} lb/in</text>
+                  <text :x="item.textB.x" :y="item.textB.y">{{item.valB}} lb/in</text>
                   <tooltip>
                     <span>{{item.valA}} lb/in at {{item.locA}} in</span>
                     <span>{{item.valB}} lb/in at {{item.locB}} in</span>

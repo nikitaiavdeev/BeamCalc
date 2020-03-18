@@ -7,6 +7,10 @@ $distrForce-hover: #C8E6C9;
 
 
 #canvas {
+    text {
+        text-anchor: middle;
+    }
+
     .beam {
         cursor: pointer;
         stroke: $beam-stroke;
