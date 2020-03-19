@@ -11,6 +11,12 @@
               <marker id="arrow-distrForce-hover" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M0,0L10,5L0,10z" stroke="none"/>
               </marker>
+              <marker id="arrow-force" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
+              <marker id="arrow-force-hover" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
             </defs>
             <g>
               <g class='beam' v-for="(section, index) in beams.sections" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
@@ -34,6 +40,13 @@
                   <tooltip>
                     <span>{{item.valA}} lb/in at {{item.locA}} in</span>
                     <span>{{item.valB}} lb/in at {{item.locB}} in</span>
+                </tooltip>
+                </g>
+                <g v-if="item.type === 'force'" class="force" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <polyline :points="item.path"/>
+                  <text :x="item.textA.x" :y="item.textA.y">{{item.valA}} lb</text>
+                  <tooltip>
+                    <span>{{item.valA}} lb at {{item.locA}} in</span>
                 </tooltip>
                 </g>
               </g>

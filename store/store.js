@@ -82,14 +82,11 @@ const defaultState = {
       textA: Object.assign('', defaultText),
       textB: Object.assign('', defaultText),
     }, {
-      type: 'distributed force',
-      locA: 2,
-      locB: 4,
+      type: 'force',
+      locA: 5,
       valA: -50,
-      valB: -100,
       path: '',
       textA: Object.assign('', defaultText),
-      textB: Object.assign('', defaultText),
     }]
   },
   appVersion: 'v0.0.1',
@@ -165,15 +162,23 @@ export default new Vuex.Store({
       let points;
 
       state.loadBCs.items.forEach(f => {
-        points = get4Points(state, f, state.loadBCs.minForce, state.loadBCs.maxForce, MIN_FORCE_HEIGHT, MAX_FORCE_HEIGHT);
-        f.path = points[0][0] + ',' + points[0][1] + ' ' +
-          points[1][0] + ',' + points[1][1] + ' ' +
-          points[2][0] + ',' + points[2][1] + ' ' +
-          points[3][0] + ',' + points[3][1];
-        f.textA.x = points[1][0];
-        f.textA.y = points[1][1] + (f.valA > 0 ? 15 : -5);
-        f.textB.x = points[2][0];
-        f.textB.y = points[2][1] + (f.valB > 0 ? 15 : -5);
+        if (f.type === 'distributed force') {
+          points = get4Points(state, f, state.loadBCs.minForce, state.loadBCs.maxForce, MIN_FORCE_HEIGHT, MAX_FORCE_HEIGHT);
+          f.path = points[0][0] + ',' + points[0][1] + ' ' +
+            points[1][0] + ',' + points[1][1] + ' ' +
+            points[2][0] + ',' + points[2][1] + ' ' +
+            points[3][0] + ',' + points[3][1];
+          f.textA.x = points[1][0];
+          f.textA.y = points[1][1] + (f.valA > 0 ? 15 : -5);
+          f.textB.x = points[2][0];
+          f.textB.y = points[2][1] + (f.valB > 0 ? 15 : -5);
+        } else if (f.type === 'force') {
+          points = get2Points(state, f, state.loadBCs.minForce, state.loadBCs.maxForce, MIN_FORCE_HEIGHT, MAX_FORCE_HEIGHT);
+          f.path = points[0][0] + ',' + points[0][1] + ' ' +
+            points[1][0] + ',' + points[1][1];
+          f.textA.x = points[1][0];
+          f.textA.y = points[1][1] + (f.valA > 0 ? 15 : -5);
+        }
       });
     }
   },
@@ -199,5 +204,26 @@ const get4Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
     [getX(f.locA), getY(f.valA)],
     [getX(f.locB), getY(f.valB)],
     [getX(f.locB), getY(f.valB, true)],
+  ];
+}
+
+const get2Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
+  const
+    ySlope = (maxScreenH - minScreenH) / (minH - maxH),
+    yScale = Number.isFinite(ySlope) ? ySlope : 0.0;
+
+  const
+    getX = (x) => {
+      return MARGIN_X + x * state.screen.scaleX;
+    },
+    getY = (y, isZero = false) => {
+      const val = isZero ? 0 : state.screen.maxY * (maxScreenH - yScale * (Math.abs(y) - maxH));
+      return state.screen.maxY * 0.5 + Math.sign(y) * (state.screen.beamY + val);
+    };
+
+  console.log(f.valA, maxScreenH);
+  return [
+    [getX(f.locA), getY(f.valA, true)],
+    [getX(f.locA), getY(f.valA)],
   ];
 }
