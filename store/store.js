@@ -11,7 +11,9 @@ const
   MIN_BEAM_HEIGHT = 0.01,
   MAX_BEAM_HEIGHT = 0.03,
   MIN_FORCE_HEIGHT = 0.05,
-  MAX_FORCE_HEIGHT = 0.30;
+  MAX_FORCE_HEIGHT = 0.30,
+  MIN_MOMENT_HEIGHT = 0.02,
+  MAX_MOMENT_HEIGHT = 0.10;
 
 const defaultLoadBC = {
   type: '',
@@ -72,6 +74,8 @@ const defaultState = {
   loadBCs: {
     maxForce: 100,
     minForce: 20,
+    maxMoment: 50,
+    minMoment: 50,
     items: [{
       type: 'distributed force',
       locA: 2,
@@ -84,9 +88,20 @@ const defaultState = {
     }, {
       type: 'force',
       locA: 5,
+      valA: -100,
+      path: '',
+      textA: Object.assign('', defaultText),
+    }, {
+      type: 'moment',
+      locA: 10,
       valA: -50,
       path: '',
       textA: Object.assign('', defaultText),
+    }, {
+      type: 'support',
+      locA: 10,
+      x: 0,
+      y: 0,
     }]
   },
   appVersion: 'v0.0.1',
@@ -178,6 +193,17 @@ export default new Vuex.Store({
             points[1][0] + ',' + points[1][1];
           f.textA.x = points[1][0];
           f.textA.y = points[1][1] + (f.valA > 0 ? 15 : -5);
+        } else if (f.type === 'moment') {
+          points = get2Points(state, f, state.loadBCs.minMoment, state.loadBCs.maxMoment, MIN_MOMENT_HEIGHT, MAX_MOMENT_HEIGHT, true);
+          f.path = 'M ' + (points[0] + points[2]) + ' ' + points[1] + ' A ' +
+            points[2] + ' ' + points[2] + ' 0 1 1 ' +
+            points[0] + ' ' + (points[1] - points[2]);
+          f.textA.x = points[0];
+          f.textA.y = points[1] + (f.valA > 0 ? 15 : -5);
+        } else if (f.type === 'support') {
+          points = getBCPoint(state, f);
+          f.x = points[0][0];
+          f.y = points[0][1];
         }
       });
     }
@@ -198,7 +224,6 @@ const get4Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
       return state.screen.maxY * 0.5 + Math.sign(y) * (state.screen.beamY + val);
     };
 
-  console.log(f.valA, maxScreenH);
   return [
     [getX(f.locA), getY(f.valA, true)],
     [getX(f.locA), getY(f.valA)],
@@ -207,7 +232,7 @@ const get4Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
   ];
 }
 
-const get2Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
+const get2Points = (state, f, minH, maxH, minScreenH, maxScreenH, isMoment = false) => {
   const
     ySlope = (maxScreenH - minScreenH) / (minH - maxH),
     yScale = Number.isFinite(ySlope) ? ySlope : 0.0;
@@ -220,10 +245,35 @@ const get2Points = (state, f, minH, maxH, minScreenH, maxScreenH) => {
       const val = isZero ? 0 : state.screen.maxY * (maxScreenH - yScale * (Math.abs(y) - maxH));
       return state.screen.maxY * 0.5 + Math.sign(y) * (state.screen.beamY + val);
     };
+  
+  if (isMoment) {
+    const y = getY(f.valA),
+      r = Math.abs(y - state.screen.maxY * 0.5);
+    
+    return [getX(f.locA), y+r, r];
+  } else {
+    console.log( getY(f.valA, true) - getY(f.valA));
+    return [
+      [getX(f.locA), getY(f.valA, true)],
+      [getX(f.locA), getY(f.valA)],
+    ];
+    
+  }
+}
 
-  console.log(f.valA, maxScreenH);
+const getBCPoint = (state, f) => {
+  const
+    getX = (x) => {
+      return MARGIN_X + x * state.screen.scaleX;
+    },
+    getY = (type) => {
+      if (type === 'support')
+        return state.screen.maxY * 0.5 + state.screen.beamY;
+      else
+        return state.screen.maxY * 0.5;
+    };
+
   return [
-    [getX(f.locA), getY(f.valA, true)],
-    [getX(f.locA), getY(f.valA)],
+    [getX(f.locA), getY(f.type)],
   ];
 }

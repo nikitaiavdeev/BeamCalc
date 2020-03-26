@@ -17,6 +17,20 @@
               <marker id="arrow-force-hover" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M0,0L10,5L0,10z" stroke="none"/>
               </marker>
+               <marker id="arrow-moment" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
+               <marker id="arrow-moment-hover" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
+              <g id="support">
+                <path d="M 0,0 10,18 H -10 Z" stroke-width="0"/>
+                <path d="M -12,18 H 12" stroke-width="2"/>
+                <path d="M -8,19 H -6 L-10,24 H -12 Z" stroke-width="0"/>
+                <path d="M -2,19 H 0 L -4,24 H -6 Z" stroke-width="0"/>
+                <path d="M 4,19 H 6 L 2,24 H 0 Z" stroke-width="0"/>
+                <path d="M 10,19 H 12 L 8,24 H 6 Z" stroke-width="0"/>
+              </g>
             </defs>
             <g>
               <g class='beam' v-for="(section, index) in beams.sections" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
@@ -47,7 +61,20 @@
                   <text :x="item.textA.x" :y="item.textA.y">{{item.valA}} lb</text>
                   <tooltip>
                     <span>{{item.valA}} lb at {{item.locA}} in</span>
-                </tooltip>
+                  </tooltip>
+                </g>
+                <g v-if="item.type === 'moment'" class="moment" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <path :d="item.path" />
+                  <text :x="item.textA.x" :y="item.textA.y">{{item.valA}} lb-in</text>
+                  <tooltip>
+                    <span>{{item.valA}} lb-in at {{item.locA}} in</span>
+                  </tooltip>
+                </g>
+                <g v-if="item.type === 'support'" class="support" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <use xlink:href="#support" :x="item.x" :y="item.y" /> 
+                  <tooltip>
+                    <span>simple support at {{item.locA}} in</span>
+                  </tooltip>
                 </g>
               </g>
             </g>
