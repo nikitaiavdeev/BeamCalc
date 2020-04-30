@@ -10,7 +10,7 @@
             nav
             dense
         >
-            <v-list-item link>
+            <v-list-item link @click="addBeam">
                 <v-list-item-icon>
                     <v-img src="../icons/beam.svg"></v-img>
                 </v-list-item-icon>
@@ -41,7 +41,9 @@
 <script>
   export default {
     methods:{
-      
+      addBeam(){
+        this.$store.commit('addBeam');
+      },
     }
   }
 </script>

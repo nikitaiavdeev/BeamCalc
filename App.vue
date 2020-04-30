@@ -22,6 +22,7 @@
       </v-container>
     </v-content>
 
+    <Dialog />
   </v-app>
 </template>
 
@@ -32,6 +33,7 @@
   import BeamCanvas from './components/BeamCanvas'
   import LoadBCsTable from './components/LoadBCsTable'
   import BeamTable from './components/BeamTable'
+  import Dialog from './components/Dialog'
 
   export default {
     components: {
@@ -40,7 +42,8 @@
       Header,
       BeamCanvas,
       LoadBCsTable,
-      BeamTable
+      BeamTable,
+      Dialog
     }
   }
 </script>

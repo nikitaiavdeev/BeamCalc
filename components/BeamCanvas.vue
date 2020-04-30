@@ -32,8 +32,9 @@
                 <path d="M 10,19 H 12 L 8,24 H 6 Z" stroke-width="0"/>
               </g>
             </defs>
+
             <g>
-              <g class='beam' v-for="(section, index) in beams.sections" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+              <g class='beam' v-for="(section, index) in beams.sections" :key="'beam' + index" @click="editBeam(section)" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                 <polygon  :points="section.polygonWhite" fill="white"/>
                 <polygon  :points="section.polygonFill"/>
                 <path  :d="section.path"/>
@@ -132,6 +133,9 @@
     },
 
     methods: {
+      editBeam (item) {
+        this.$store.commit('editBeam', item);
+      },
       onResize() {
         this.screen.maxX = document.getElementById('canvas').clientWidth - 2 * MARGIN_X;
         this.screen.maxY = document.getElementById('canvas').clientHeight- 2 * MARGIN_Y;
@@ -139,7 +143,7 @@
         this.updateLoadBCsSVG;
       },
       onHover(e) {
-        t = setTimeout(() => {  
+        t = setTimeout(() => {
           const caller = e.target.parentElement,
             rect = caller.getBoundingClientRect();
           this.toolTipInner = caller.getElementsByTagName('tooltip')[0].innerHTML;

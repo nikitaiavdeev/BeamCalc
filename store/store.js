@@ -4,7 +4,7 @@ import Vue from 'vue'
 Vue.use(Vuex)
 
 export const
-  MARGIN_X = 10,
+  MARGIN_X = 50,
   MARGIN_Y = 10;
 
 const
@@ -13,7 +13,7 @@ const
   MIN_FORCE_HEIGHT = 0.05,
   MAX_FORCE_HEIGHT = 0.30,
   MIN_MOMENT_HEIGHT = 0.02,
-  MAX_MOMENT_HEIGHT = 0.10;
+  MAX_MOMENT_HEIGHT = 0.08;
 
 const defaultLoadBC = {
   type: '',
@@ -48,7 +48,6 @@ const defaultState = {
     beamY: 0,
   },
   beams: {
-    totalLength: 30,
     maxHeight: 1,
     minHeight: 1.0,
     sections: [{
@@ -104,6 +103,13 @@ const defaultState = {
       y: 0,
     }]
   },
+  dialog: {
+    show: false,
+    itemIndex: -1,
+    type: '',    
+    item: null,
+    items: null,
+  },
   appVersion: 'v0.0.1',
   snackbar: {
     message: '',
@@ -135,6 +141,28 @@ export default new Vuex.Store({
     showMessage(state, payload) {
       Object.assign(state.snackbar, payload);
     },
+
+    /*BEAM*/
+      addBeam: state => {
+        Object.assign(state.dialog, {
+          itemIndex: -1,
+          show: true,
+          type: 'Beam',    
+          item: Object.assign({}, defaultBeam),
+          items: state.beams.sections,
+        });
+      },
+      editBeam(state, item) {
+        Object.assign(state.dialog, {
+          itemIndex: state.beams.sections.indexOf(item),
+          show: true,
+          type: 'Beam',    
+          item: Object.assign({}, item),
+          items: state.beams.sections,
+        });
+      },
+    /*BEAM*/
+
     updateBeamsSVG: state => {
       const
         beams = state.beams,
@@ -156,23 +184,28 @@ export default new Vuex.Store({
 
       let x0 = 0,
         x1 = 0,
-        length, heightA, heightB;
+        totalLength = 0,
+        heightA, heightB;
+
+      sections.forEach(section => {
+        totalLength += parseFloat(section.length);
+      });
 
       //set screen constants
-      screen.scaleX = screen.maxX / beams.totalLength;
+      screen.scaleX = screen.maxX / totalLength;
       screen.beamY = getY(beams.maxHeight) - screen.maxY * 0.5 + 2;
 
       sections.forEach(section => {
-        length = section.length;
         heightA = 0.5 * (section.areaA + Math.pow(section.inerA, 1 / 3));
         heightB = 0.5 * (section.areaB + Math.pow(section.inerB, 1 / 3));
         x0 = x1;
-        x1 += length;
+        x1 += parseFloat(section.length);
         section.polygonWhite = getPoint(x0, -beams.maxHeight) + ' ' + getPoint(x1, -beams.maxHeight) + ' ' + getPoint(x1, beams.maxHeight) + ' ' + getPoint(x0, beams.maxHeight);
         section.polygonFill = getPoint(x0, -heightA) + ' ' + getPoint(x1, -heightB) + ' ' + getPoint(x1, heightB) + ' ' + getPoint(x0, heightA);
         section.path = 'M' + getPoint(x0, -beams.maxHeight) + 'L' + getPoint(x1, -beams.maxHeight) + 'M' + getPoint(x0, beams.maxHeight) + 'L' + getPoint(x1, beams.maxHeight);
       });
     },
+
     updateLoadBCsSVG: state => {
       let points;
 
@@ -199,7 +232,7 @@ export default new Vuex.Store({
             points[2] + ' ' + points[2] + ' 0 1 1 ' +
             points[0] + ' ' + (points[1] - points[2]);
           f.textA.x = points[0];
-          f.textA.y = points[1] + (f.valA > 0 ? 15 : -5);
+          f.textA.y = points[1] - points[2] + (f.valA > 0 ? 15 : -5);
         } else if (f.type === 'support') {
           points = getBCPoint(state, f);
           f.x = points[0][0];
@@ -252,7 +285,6 @@ const get2Points = (state, f, minH, maxH, minScreenH, maxScreenH, isMoment = fal
     
     return [getX(f.locA), y+r, r];
   } else {
-    console.log( getY(f.valA, true) - getY(f.valA));
     return [
       [getX(f.locA), getY(f.valA, true)],
       [getX(f.locA), getY(f.valA)],

@@ -1,86 +1,42 @@
 <template>
   <v-card outlined>
     <v-card-title dense>Beam</v-card-title>
-
+  
     <v-card-text>
       <v-data-table :headers= "headers" :items="beams.sections" disable-sort hide-default-footer>
-        <template v-slot:top>
-          <v-dialog v-model="dialog" max-width="1000px">
-            <template v-slot:activator="{ on }">
-              <v-btn color="primary"
-                fab
-                small
-                dark
-                absolute
-                top
-                right
-                v-on="on">
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
-            </template>
-            <v-card>
-              <v-card-title>
-                <span class="headline">{{ formTitle }}</span>
-              </v-card-title>
-
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-select :items="['Yes','No']" v-model="editedItem.isBroken" label="Is stiffener broken?"></v-select>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.dist2Crack" label="Distance to crack center" suffix="in"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="editedItem.modulus" label="Young's modulus" suffix="msi"></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-                <v-btn color="blue darken-1" text @click="save">Save</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-        </template>
         <template v-slot:item.action="{ item }">
-          <v-icon
-            small
-            class="mr-2"
-            @click="editItem(item)"
-          >
-            edit
-          </v-icon>
-          <v-icon
-            small
-            @click="deleteItem(item)"
-          >
-            delete
-          </v-icon>
+          <v-icon small class="mr-2" @click="editBeam(item)">edit</v-icon>
+          <v-icon small @click="deleteBeam(item)">delete</v-icon>
         </template>
       </v-data-table>
     </v-card-text>
+
+    <v-btn color="primary"
+        fab
+        small
+        dark
+        absolute
+        top
+        right
+        @click="addBeam">
+        <v-icon>mdi-plus</v-icon>
+    </v-btn>
   </v-card>
 </template>
 
 <script>
-  import { mapState, mapGetters } from 'vuex'
+
+  import { mapState, mapGetters, mapMutations } from 'vuex'
+  
 
   export default {
     computed:{
-      formTitle () {
-        return this.editedIndex === -1 ? 'New Section' : 'Edit Section'
-      },
       ...mapState(['beams']),
       ...mapGetters(['getBeam']),
+      ...mapMutations(['updateBeamsSVG', 'updateLoadBCsSVG']),
     },
 
     data: () => ({
-      dialog: false,
       headers: [
         { text: 'Length (in)', value: 'length'},
         { text: 'Start area (in²)', value: 'areaA' },
@@ -94,50 +50,22 @@
       editedIndex: -1,
     }),
 
-    created: function() {
-      this.editedItem = this.getBeam('default');
-      this.defaultItem = this.getBeam('default');
-    },
-
-    watch: {
-      dialog (val) {
-        val || this.close()
-      },
-    },
-
     methods: {
-      editItem (item) {
-        this.editedIndex = this.beams.sections.indexOf(item);
-        this.editedItem = this.getBeam(this.editedIndex);
-        this.dialog = true;
+      addBeam(){
+        this.$store.commit('addBeam');
       },
 
-      deleteItem (item) {
+      editBeam (item) {
+        this.$store.commit('editBeam', item);
+      },
+
+      deleteBeam (item) {
         const index = this.beams.sections.indexOf(item);
-        confirm('Are you sure you want to delete this stiffener?') && this.beams.sections.splice(index, 1)
-      },
-
-      close () {
-        this.dialog = false
-        
-        setTimeout(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
-        }, 300)
-      },
-
-      save () {
-        if (this.editedIndex > -1) {
-          Object.assign(this.beams.sections[this.editedIndex], this.editedItem)
-        } else {
-          this.beams.sections.push(this.editedItem)
+        if( confirm('Are you sure you want to delete this beam?') ){
+          this.beams.sections.splice(index, 1);
+          this.updateBeamsSVG;
+          this.updateLoadBCsSVG;
         }
-        this.close()
-      },
-
-      selectFastType(item) {
-        const t = item.fastenerType;
-        this.$store.commit('setFastener',{item, t});
       }
     },
   }

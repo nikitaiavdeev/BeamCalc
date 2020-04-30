@@ -14,6 +14,7 @@ $support-fill-hover: #90A4AE;
 #canvas {
     text {
         text-anchor: middle;
+        stroke: none;
     }
 
     .beam {
@@ -40,8 +41,7 @@ $support-fill-hover: #90A4AE;
         cursor: pointer;
         stroke: $distrForce-stroke;
         fill: $distrForce-fill;
-        fill-opacity: 0.1;
-
+        fill-opacity: 0.2;
 
         &:hover {
             stroke: $distrForce-hover;
@@ -52,6 +52,16 @@ $support-fill-hover: #90A4AE;
                 marker-start: url("#arrow-distrForce-hover");
                 marker-end: url("#arrow-distrForce-hover");
             }
+
+            text {
+                fill: $distrForce-hover;
+                fill-opacity: 0.7;
+            }
+        }
+
+        text {
+            fill: $distrForce-stroke;
+            fill-opacity: 1;
         }
 
         polyline {
@@ -64,10 +74,14 @@ $support-fill-hover: #90A4AE;
     .force {
         cursor: pointer;
         stroke: $force-stroke;
+        fill: $force-stroke;
+        fill-opacity: 1;
 
         &:hover {
             stroke: $force-hover;
             stroke-opacity: 0.7;
+            fill: $force-hover;
+            fill-opacity: 0.7;
 
             polyline {
                 marker-start: url("#arrow-force-hover");
@@ -83,10 +97,13 @@ $support-fill-hover: #90A4AE;
     .moment {
         cursor: pointer;
         stroke: $moment-stroke;
+        fill: $moment-stroke;
 
         &:hover {
             stroke: $moment-hover;
             stroke-opacity: 0.7;
+            fill: $moment-hover;
+            fill-opacity: 0.7;
 
             path {
                 marker-start: url("#arrow-moment-hover");
