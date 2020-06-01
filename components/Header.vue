@@ -19,15 +19,24 @@
       <v-btn text @click="$refs.fileUpload.click()">
         Open
       </v-btn>
-      <input v-show="false" ref="fileUpload" type="file" accept=".txt, .in" @change="openFile">
+      <input v-show="false" ref="fileUpload" type="file" accept=".json" @change="openFile">
 
       <v-divider
         inset
         vertical
       ></v-divider>
 
-      <v-btn text @click="showSnack">
+      <v-btn text @click="saveFile">
         Save
+      </v-btn>
+
+      <v-divider
+        inset
+        vertical
+      ></v-divider>
+
+      <v-btn text @click="solveBeam">
+        Calculate
       </v-btn>
     </v-toolbar-items>
 
@@ -40,7 +49,7 @@
 </template>
 
 <script>
-  export default {
+  export default {   
     methods:{
       resetState() {
         this.$store.commit('resetState');
@@ -48,20 +57,27 @@
       showSnack(){
         this.$store.commit('showMessage',{message: "error", color: "error", show: true});
       },
+      saveFile(){
+        this.$store.commit('saveFile');
+      },
       openFile(){
         let file = this.$refs.fileUpload.files[0];
-        if(!file){
+        if (!file) {
           return;
-        } 
-        
+        }
+
         let reader = new FileReader();
         reader.readAsText(file, "UTF-8");
-        reader.onload =  evt => {
-          console.log(evt.target.result);
+        reader.onload = evt => {
+          this.$store.commit('openFile', evt.target.result);
         }
         reader.onerror = evt => {
           console.error(evt);
         }
+      
+      },
+      solveBeam(){
+        this.$store.commit('solveBeam');
       }
     }
   }

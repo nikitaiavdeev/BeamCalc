@@ -3,7 +3,7 @@
     <v-card-title dense>Beam</v-card-title>
   
     <v-card-text>
-      <v-data-table :headers= "headers" :items="beams.sections" disable-sort hide-default-footer>
+      <v-data-table class="inputTable" :headers= "headers" :items="beams.sections" disable-sort hide-default-footer>
         <template v-slot:item.action="{ item }">
           <v-icon small class="mr-2" @click="editBeam(item)">edit</v-icon>
           <v-icon small @click="deleteBeam(item)">delete</v-icon>
@@ -26,23 +26,20 @@
 
 <script>
 
-  import { mapState, mapGetters, mapMutations } from 'vuex'
+  import { mapState, mapMutations } from 'vuex'
   
 
   export default {
     computed:{
       ...mapState(['beams']),
-      ...mapGetters(['getBeam']),
       ...mapMutations(['updateBeamsSVG', 'updateLoadBCsSVG']),
     },
 
     data: () => ({
       headers: [
         { text: 'Length (in)', value: 'length'},
-        { text: 'Start area (in²)', value: 'areaA' },
-        { text: 'End area (in²)', value: 'areaB' },
-        { text: "Start inertia (in⁴)", value: 'inerA' },
-        { text: 'End inertia (in⁴)', value: 'inerB' },
+        { text: 'Elastic modulus (msi)', value: 'modulus' },
+        { text: "Moment of inertia (in⁴)", value: 'inertia' },
         { text: 'Actions', value: 'action', sortable: false },
       ],
       editedItem: null,
@@ -62,6 +59,7 @@
       deleteBeam (item) {
         const index = this.beams.sections.indexOf(item);
         if( confirm('Are you sure you want to delete this beam?') ){
+          this.$store.state.solved = false;
           this.beams.sections.splice(index, 1);
           this.updateBeamsSVG;
           this.updateLoadBCsSVG;

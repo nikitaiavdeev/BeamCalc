@@ -1,10 +1,10 @@
 <template>
   <v-card outlined>
-    <v-card-title dense>Beam</v-card-title>
+    <v-card-title dense>Free Body</v-card-title>
     <v-card-text>
       <v-row dense>
         <v-col>
-          <svg id="canvas" width="100%" height="250px">
+          <svg id="freeBodyCanvas" width="100%" height="300px">
             <defs>
               <marker id="arrow-distrForce" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M0,0L10,5L0,10z" stroke="none"/>
@@ -32,43 +32,27 @@
                <marker id="arrow-moment-hover" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M0,0L10,5L0,10z" stroke="none"/>
               </marker>
-              <g id="support">
-                <path d="M 0,0 10,18 H -10 Z" stroke-width="0"/>
-                <path d="M -12,18 H 12" stroke-width="2"/>
-                <path d="M -8,19 H -6 L-10,24 H -12 Z" stroke-width="0"/>
-                <path d="M -2,19 H 0 L -4,24 H -6 Z" stroke-width="0"/>
-                <path d="M 4,19 H 6 L 2,24 H 0 Z" stroke-width="0"/>
-                <path d="M 10,19 H 12 L 8,24 H 6 Z" stroke-width="0"/>
-              </g>
-              <g id="slide">
-                <path d="M -6,-20 V 20" stroke-width="3"/>
-                <path d="M 6,-20 V 20" stroke-width="3"/>
-                <circle cx="0" cy="-10" r="5" stroke-width="0"/>
-                <circle cx="0" cy="10" r="5" stroke-width="0"/>
-              </g>
-              <g id="fix-left">
-                <path d="M 0,-20 V 20" stroke-width="4"/>
-                <path d="M -2,-20 v 2 L-10,-10 v -2 Z" stroke-width="0"/>
-                <path d="M -2,-10 v 2 L-10,0 v -2 Z" stroke-width="0"/>
-                <path d="M -2,0 v 2 L-10,10 v -2 Z" stroke-width="0"/>
-                <path d="M -2,10 v 2 L-10,20 v -2 Z" stroke-width="0"/>
-              </g>
-              <g id="fix-right">
-                <path d="M 0,-20 V 20" stroke-width="4"/>
-                <path d="M 2,-20 v 2 L10,-10 v -2 Z" stroke-width="0"/>
-                <path d="M 2,-10 v 2 L10,0 v -2 Z" stroke-width="0"/>
-                <path d="M 2,0 v 2 L10,10 v -2 Z" stroke-width="0"/>
-                <path d="M 2,10 v 2 L10,20 v -2 Z" stroke-width="0"/>
-              </g>
+              <marker id="arrow-reactionF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
+              <marker id="arrow-reactionF-hover" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
+              <marker id="arrow-reactionM" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
+              <marker id="arrow-reactionM-hover" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0L10,5L0,10z" stroke="none"/>
+              </marker>
             </defs>
 
             <g>
-              <g class='beam' v-for="(section, index) in sections" :key="'beam' + index" @click="editBeam(section)" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
-                <polygon :points="section.polygonFill"/>
-                <path :d="section.path"/>
+              <g class='beam' v-for="(section, index) in beams.sections" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                <polygon  :points="section.polygonFill"/>
+                <path  :d="section.path"/>
                 <tooltip>
-                  <span>Beam #{{ index + 1 }}</span>
-                  <span>Length {{ section.length }} in</span>
+                  <span>Beam #{{index+1}}</span>
+                  <span>Length {{section.length}} in</span>
                 </tooltip>
               </g>
             </g>
@@ -76,7 +60,7 @@
             <!-- Loads -->
             <g>              
               <g v-for="(item, index) in loads" :key="item.type + index">
-                <g v-if="item.type === 'Distributed Force'" class="distrForce" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editLoad(item)">
+                <g v-if="item.type === 'Distributed Force'" class="distrForce" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <polygon  :points="item.path" stroke="none"/>
                   <polyline :points="item.path"/>
                   <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.valA)}} lb/in</text>
@@ -86,7 +70,7 @@
                     <span>{{formatNum(item.valB)}} lb/in at {{item.locB}} in</span>
                   </tooltip>
                 </g>
-                <g v-if="item.type === 'Distributed Moment'" class="distrMoment" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editLoad(item)">
+                <g v-if="item.type === 'Distributed Moment'" class="distrMoment" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <polygon  :points="item.path" stroke="none"/>
                   <polyline :points="item.path"/>
                   <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.valA)}} lb-in/in</text>
@@ -96,14 +80,14 @@
                     <span>{{formatNum(item.valB)}} lb-in/in at {{item.locB}} in</span>
                   </tooltip>
                 </g>
-                <g v-if="item.type === 'Force'" class="force" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editLoad(item)">
+                <g v-if="item.type === 'Force'" class="force" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <polyline :points="item.path"/>
                   <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.valA)}} lb</text>
                   <tooltip>
                     <span>{{formatNum(item.valA)}} lb at {{item.locA}} in</span>
                   </tooltip>
                 </g>
-                <g v-if="item.type === 'Moment'" class="moment" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editLoad(item)">
+                <g v-if="item.type === 'Moment'" class="moment" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <path :d="item.path" />
                   <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.valA)}} lb-in</text>
                   <tooltip>
@@ -117,23 +101,28 @@
             <!-- Supports -->
             <g>
               <g v-for="(item, index) in supports" :key="item.type + index">
-                <g v-if="item.type === 'Support'" class="support" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editBC(item)">
-                  <use xlink:href="#support" :x="item.x" :y="item.y" /> 
+                <g v-if="item.type === 'Support'" class="reaction" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <polyline :points="item.path"/>
+                  <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.rF)}} lb</text>
                   <tooltip>
-                    <span>simple support at {{item.locA}} in</span>
+                    <span>Reaction is {{formatNum(item.rF)}} lb at {{item.locA}} in</span>
                   </tooltip>
                 </g>
-                <g v-if="item.type === 'Slide'" class="slide" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editBC(item)">
-                  <use xlink:href="#slide" :x="item.x" :y="item.y" /> 
+                <g v-if="item.type === 'Slide'" class="reaction" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <path :d="item.path" />
+                  <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.rM)}} lb-in</text>
                   <tooltip>
-                    <span>slide support at {{item.locA}} in</span>
+                    <span>Reaction is {{formatNum(item.rM)}} lb-in at {{item.locA}} in</span>
                   </tooltip>
                 </g>
-                <g v-if="item.type === 'Fixed'" class="fix" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editBC(item)">
-                  <use v-if="item.isLeft" xlink:href="#fix-left" :x="item.x" :y="item.y" />
-                  <use v-if="!item.isLeft" xlink:href="#fix-right" :x="item.x" :y="item.y" /> 
+                <g v-if="item.type === 'Fixed'" class="reaction" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <polyline :points="item.path"/>
+                  <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.rF)}} lb</text>
+
+                  <path :d="item.pathM" />
+                  <text :x="item.textB.x" :y="item.textB.y">{{formatNum(item.rM)}} lb-in</text>
                   <tooltip>
-                    <span>fixed at {{item.locA}} in</span>
+                    <span>Reaction is {{formatNum(item.rF)}} lb and {{formatNum(item.rM)}} lb-in at {{item.locA}} in</span>
                   </tooltip>
                 </g>
               </g>
@@ -148,12 +137,9 @@
 </template>
 
 <script>
-  import { mapState, mapMutations  } from 'vuex'
-  import { MARGIN_X, MARGIN_Y } from '../store/store.js'
+  import { mapState } from 'vuex'
   import { formatNumer } from '../general/helpers.js'
-  import mapStatesTwoWay from '../store/mapTwoWay'
   import SVGToolTip from './SVGToolTip'
-  import '../scss/svg.scss'
 
   let t;
 
@@ -163,17 +149,7 @@
     },
 
     computed:{
-      ...mapState({
-        sections: state => state.beams.sections,
-        supports: state => state.supports, 
-        loads: state => state.loads
-      }),
-      ...mapMutations(['updateBeamsSVG', 'updateLoadBCsSVG', 'updateQMVSVG']),
-      ...mapStatesTwoWay({
-        screen: state => state.screen,
-      }, function (value) {
-        this.$store.commit('updateCurrent', value)
-      })
+      ...mapState(['beams', 'supports', 'loads']),
     },
 
     data: () => ({
@@ -183,39 +159,7 @@
       toolTipLeft: 0,
     }),
 
-    mounted: function() {
-      this.$nextTick(() => {
-        window.addEventListener('resize', this.onResize);
-        this.screen.maxX = document.getElementById('canvas').clientWidth - 2 * MARGIN_X;
-        this.screen.maxY = document.getElementById('canvas').clientHeight- 2 * MARGIN_Y;
-        this.updateBeamsSVG;
-        this.updateLoadBCsSVG;
-        this.toolTipTop ++; //forceUpdate
-      })
-    },
-
-    beforeDestroy: function() { 
-      window.removeEventListener('resize', this.onResize); 
-    },
-
     methods: {
-      editBeam (item) {
-        this.$store.commit('editBeam', item);
-      },
-      editLoad (item) {
-        this.$store.commit('editLoad', item);
-      },
-      editBC (item) {
-        this.$store.commit('editBC', item);
-      },
-      onResize() {
-        this.screen.maxX = document.getElementById('canvas').clientWidth - 2 * MARGIN_X;
-        this.screen.maxY = document.getElementById('canvas').clientHeight- 2 * MARGIN_Y;
-        this.updateBeamsSVG;
-        this.updateLoadBCsSVG;
-        this.updateQMVSVG;
-        this.toolTipTop ++;//forceUpdate
-      },
       onHover(e) {
         t = setTimeout(() => {
           const caller = e.target.parentElement,
