@@ -7,27 +7,26 @@ const math = require('mathjs');
 
 const solve = (state) => {
     const
-        beams = state.beams.sections,
-        supports = state.supports,
-        loads = state.loads;
+        beams = state.analysis.beams,
+        supports = state.analysis.supports,
+        loads = state.analysis.loads;
 
     let
         fSum = 0,
         mSum = 0,
         n = 0;
 
-    loads.forEach(f => {
-        if (f.type === 'Fixed') {
-            n += 2;
-        } else if ((f.type === 'Support') || (f.type === 'Slide')) {
-            n++;
-        }
+    supports.forEach(s => {
+        if (s.type === 'Fixed') n += 2;
+        else n++;
     });
 
     const
         arr = math.zeros(n + 2, n + 2),
         ans = math.zeros(n + 2, 1);
 
+    n = 0;
+    
     // no angle or displ in sum(F) = 0 or sum(M) = 0
     arr.set([0, 0], 0);
     arr.set([0, 1], 0);
@@ -38,9 +37,9 @@ const solve = (state) => {
         if (s.type === 'Fixed') {
             displEq0(arr, ans, n++, state, s);
             angleEq0(arr, ans, n++, state, s);
-        } else if (s.type === 'Support') {
+        } else if ((s.type === 'Support') || (s.type === 'Linear Spring')) {
             displEq0(arr, ans, n++, state, s);
-        } else if (s.type === 'Slide') {
+        } else if ((s.type === 'Slide') || (s.type === 'Torsion Spring')) {
             angleEq0(arr, ans, n++, state, s);
         }
     });
@@ -83,11 +82,22 @@ const solve = (state) => {
                 'rF': 0,
                 'rM': reactions.get([2 + n++, 0])
             });
+        } else if (s.type === 'Linear Spring') {
+            Object.assign(s, {
+                'rF': s.stiff * reactions.get([2 + n++, 0]),
+                'rM': 0
+            });
+        } else if (s.type === 'Torsion Spring') {
+            Object.assign(s, {
+                'rF': 0,
+                'rM': s.stiff * reactions.get([2 + n++, 0])
+            });
         }
     });
 
-    const nPoints = 300,
-        l = state.beams.totalLength;
+    const
+        nPoints = 300,
+        beamL = state.analysis.totalLength;
 
     let q, dq, m, dm, v, dx, lb,
         x = 0,
@@ -103,7 +113,7 @@ const solve = (state) => {
         dm = 0;
         lb = 0;
         v = v0 + t0 * x;
-        dx = l / nPoints;
+        dx = beamL / nPoints;
 
         for (const b of beams) {
             lb += b.length;
@@ -183,11 +193,11 @@ const solve = (state) => {
         pathM += 'L' + x + ',' + m + ((dm != 0) ? 'L' + x + ',' + (m + dm) : '');
         pathV += 'L' + x + ',' + v;
 
-        if (x === l) break;
-        x += (x + dx <= l) ? dx : l - x;
-    } while (x <= l);
+        if (x === beamL) break;
+        x += (x + dx <= beamL) ? dx : beamL - x;
+    } while (x <= beamL);
 
-    Object.assign(state.solution, {
+    Object.assign(state.analysis.solution, {
         graphQ: {
             'path': pathQ,
             'pathMax': maxQ,
@@ -206,19 +216,22 @@ const solve = (state) => {
     });
 
     updateQMVGraphs(state);
-    state.solved = true;
+    Object.assign(state.analysis, {
+        solved: true
+    });
     drawForces(state);
 }
 
 const displEq0 = (arr, ans, n, state, inp) => {
     const
-        beams = state.beams.sections,
-        supports = state.supports,
-        loads = state.loads,
-        x = inp.locA;
+        beams = state.analysis.beams,
+        supports = state.analysis.supports,
+        loads = state.analysis.loads,
+        x = inp.locA,
+        coeff = inp.type === 'Linear Spring' ? inp.stiff : 1;
 
-    arr.set([0, 2 + n], 1); //sum(F) = 0
-    arr.set([1, 2 + n], x); //sum(M) = 0
+    arr.set([0, 2 + n], coeff); //sum(F) = 0
+    arr.set([1, 2 + n], coeff * x); //sum(M) = 0
 
     arr.set([2 + n, 0], 1); //v0
     arr.set([2 + n, 1], x); //theta0
@@ -227,17 +240,24 @@ const displEq0 = (arr, ans, n, state, inp) => {
         vSum = 0;
 
     supports.forEach(s => {
-        if (s !== inp) {
-            if ((s.type === 'Fixed') && (s.locA < x)) {
+        if ((s !== inp) && (s.locA < x)) {
+            if (s.type === 'Fixed') {
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Displacement'));
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Displacement'));
-            } else if ((s.type === 'Support') && (s.locA < x)) {
+            } else if (s.type === 'Support') {
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Displacement'));
-            } else if ((s.type === 'Slide') && (s.locA < x)) {
+            } else if (s.type === 'Slide') {
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Displacement'));
+            } else if (s.type === 'Linear Spring') {
+                arr.set([2 + n, 2 + i++], pointInteg(beams, s.stiff, s.locA, x, 'Force', 'Displacement'));
+            } else if (s.type === 'Torsion Spring') {
+                arr.set([2 + n, 2 + i++], pointInteg(beams, s.stiff, s.locA, x, 'Moment', 'Displacement'));
             }
-        } else {
-            i++;
+        } else if (s === inp) {
+            if (inp.type === 'Linear Spring')
+                arr.set([2 + n, 2 + i++], 1);
+            else
+                i++;
         }
     });
 
@@ -253,12 +273,13 @@ const displEq0 = (arr, ans, n, state, inp) => {
 
 const angleEq0 = (arr, ans, n, state, inp) => {
     const
-        beams = state.beams.sections,
-        supports = state.supports,
-        loads = state.loads,
-        x = inp.locA;
+        beams = state.analysis.beams,
+        supports = state.analysis.supports,
+        loads = state.analysis.loads,
+        x = inp.locA,
+        coeff = inp.type === 'Torsion Spring' ? inp.stiff : 1;
 
-    arr.set([1, 2 + n], 1); //sum(M) = 0
+    arr.set([1, 2 + n], coeff); //sum(M) = 0
 
     arr.set([2 + n, 1], 1); //theta0
 
@@ -266,17 +287,22 @@ const angleEq0 = (arr, ans, n, state, inp) => {
         tSum = 0;
 
     supports.forEach(s => {
-        if (s !== inp) {
-            if ((s.type === 'Fixed') && (s.locA < x)) {
+        if ((s !== inp) && (s.locA < x)) {
+            if (s.type === 'Fixed') {
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Angle'));
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Angle'));
-            } else if ((s.type === 'Support') && (s.locA < x)) {
+            } else if (s.type === 'Support') {
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Angle'));
-            } else if ((s.type === 'Slide') && (s.locA < x)) {
+            } else if (s.type === 'Slide') {
                 arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Angle'));
+            } else if (s.type === 'Torsion Spring') {
+                arr.set([2 + n, 2 + i++], pointInteg(beams, s.stiff, s.locA, x, 'Moment', 'Angle'));
             }
-        } else {
-            i++;
+        } else if (s === inp) {
+            if (inp.type === 'Torsion Spring')
+                arr.set([2 + n, 2 + i++], 1);
+            else
+                i++;
         }
     });
 

@@ -10,7 +10,7 @@ import {
 
 const drawBeams = (state) => {
   const
-    sections = state.beams.sections,
+    beams = state.analysis.beams,
     screen = state.screen;
 
   const
@@ -18,22 +18,28 @@ const drawBeams = (state) => {
       return (MARGIN_X + x * screen.scaleX) + ',' + screen.maxY * (0.5 + y);
     }
 
-  let x0 = 0,
-    x1 = 0;
+  let
+    x0 = 0,
+    x1 = 0,
+    beamL = 0;
 
-  state.beams.totalLength = 0;
+  beams.forEach(b => {
+    beamL += b.length;
+  });
 
-  sections.forEach(section => {
-    state.beams.totalLength += section.length;
+  Object.assign(state.analysis, {
+    totalLength: beamL
   });
 
   //set screen constants
-  screen.scaleX = screen.maxX / state.beams.totalLength;
+  Object.assign(screen, {
+    scaleX: screen.maxX / beamL
+  });
 
-  sections.forEach(section => {
+  beams.forEach(b => {
     x0 = x1;
-    x1 += section.length;
-    Object.assign(section, {
+    x1 += b.length;
+    Object.assign(b, {
       polygonFill: getPoint(x0, -BEAM_HEIGHT) + ' ' + getPoint(x1, -BEAM_HEIGHT) + ' ' + getPoint(x1, BEAM_HEIGHT) + ' ' + getPoint(x0, BEAM_HEIGHT),
       path: 'M' + getPoint(x0, -BEAM_HEIGHT) + 'L' + getPoint(x1, -BEAM_HEIGHT) + 'M' + getPoint(x0, BEAM_HEIGHT) + 'L' + getPoint(x1, BEAM_HEIGHT)
     });
@@ -42,19 +48,21 @@ const drawBeams = (state) => {
 
 const drawForces = (state) => {
   let points;
-  const 
-    supports = state.supports,
-    loads = state.loads;
+  const
+    solved = state.analysis.solved,
+    beamL = state.analysis.totalLength,
+    supports = state.analysis.supports,
+    loads = state.analysis.loads;
 
   supports.forEach(s => {
     points = getPoints(state, s);
     Object.assign(s, {
       x: points[0][0],
       y: points[0][1],
-      isLeft: s.locA < state.beams.totalLength / 2
+      isLeft: s.locA < beamL / 2
     });
-    if (state.solved) {
-      if (s.type === 'Support') {
+    if (solved) {
+      if ((s.type === 'Support') || (s.type === 'Linear Spring')) {
         Object.assign(s, {
           path: points[1][0] + ',' + points[1][1] + ' ' +
             points[2][0] + ',' + points[2][1],
@@ -63,7 +71,7 @@ const drawForces = (state) => {
             y: points[2][1] + (s.rF > 0 ? 20 : -10)
           }
         });
-      } else if (s.type === 'Slide') {
+      } else if ((s.type === 'Slide') || (s.type === 'Torsion Spring')) {
         Object.assign(s, {
           path: 'M ' + points[1][0] + ' ' + points[1][1] + ' A ' +
             points[2][0] + ' ' + points[2][1] + (s.rM < 0 ? ' 1 1 0 ' : ' 0 1 1 ') +
@@ -137,6 +145,7 @@ const drawForces = (state) => {
 
 const getPoints = (state, f) => {
   const
+    solved = state.analysis.solved,
     getX = (x) => {
       return MARGIN_X + x * state.screen.scaleX;
     },
@@ -169,8 +178,8 @@ const getPoints = (state, f) => {
       [getX(f.locA), getY(BEAM_HEIGHT * Math.sign(f.valA))],
       [getX(f.locA), getY(VECTOR_HEIGHT * Math.sign(f.valA))]
     ];
-  } else if (f.type === 'Support') {
-    if (state.solved) {
+  } else if ((f.type === 'Support') || (f.type === 'Linear Spring')) {
+    if (solved) {
       return [
         [getX(f.locA), getY(BEAM_HEIGHT)],
         [getX(f.locA), getY(BEAM_HEIGHT * Math.sign(f.rF))],
@@ -181,8 +190,8 @@ const getPoints = (state, f) => {
         [getX(f.locA), getY(BEAM_HEIGHT)]
       ];
     }
-  } else if (f.type === 'Slide') {
-    if (state.solved) {
+  } else if ((f.type === 'Slide') || (f.type === 'Torsion Spring')) {
+    if (solved) {
       let
         cX = getX(f.locA),
         cY = state.screen.maxY * 0.5,
@@ -199,7 +208,7 @@ const getPoints = (state, f) => {
       ];
     }
   } else if (f.type === 'Fixed') {
-    if (state.solved) {
+    if (solved) {
       let
         cX = getX(f.locA),
         cY = state.screen.maxY * 0.5,
@@ -222,13 +231,14 @@ const getPoints = (state, f) => {
 
 /*Solution*/
 const updateQMVGraphs = (state) => {
-  getTransform(state.solution.graphQ, state);
-  getTransform(state.solution.graphM, state);
-  getTransform(state.solution.graphV, state);
+  getTransform(state.analysis.solution.graphQ, state);
+  getTransform(state.analysis.solution.graphM, state);
+  getTransform(state.analysis.solution.graphV, state);
 };
 
 const getTransform = (graph, state) => {
   const
+    beamL = state.analysis.totalLength,
     max = graph.pathMax,
     min = graph.pathMin,
     step = graphRound(Math.abs(max - min) / GRAPH_STEPS),
@@ -241,7 +251,7 @@ const getTransform = (graph, state) => {
   });
 
   const
-    scaleX = (state.screen.maxX - MARGIN_X) / state.beams.totalLength,
+    scaleX = (state.screen.maxX - MARGIN_X) / beamL,
     scaleY = (GRAPH_HEIGHT - 5 * MARGIN_Y) / (graph.min - graph.max),
     getX = (x) => {
       return x * scaleX + 2 * MARGIN_X;

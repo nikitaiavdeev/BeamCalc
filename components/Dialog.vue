@@ -76,26 +76,35 @@
 
                     <v-container v-if="dialog.type === 'Support'">
                         <v-radio-group v-model="dialog.item.type" class="row" row>
-                            <v-radio class="col-md-4 mr-0" label="Fixed" value="Fixed"></v-radio>
-                            <v-radio class="col-md-4 mr-0" label="Support" value="Support"></v-radio>
-                            <v-radio class="col-md-4 mr-0" label="Slide" value="Slide"></v-radio>
+                            <v-radio class="col-md-2 mr-0" label="Fixed" value="Fixed"></v-radio>
+                            <v-radio class="col-md-2 mr-0" label="Support" value="Support"></v-radio>
+                            <v-radio class="col-md-2 mr-0" label="Slide" value="Slide"></v-radio>
+                            <v-radio class="col-md-3 mr-0" label="Linear Spring" value="Linear Spring"></v-radio>
+                            <v-radio class="col-md-3 mr-0" label="Torsion Spring" value="Torsion Spring"></v-radio>
                         </v-radio-group>
                         <v-row>
-                            <v-col cols="12" sm="12" md="12">
+                            <v-col>
                                 <v-text-field v-model="dialog.item.locA" label="Support location" suffix="in" :rules="[ruleLocA]" required></v-text-field>
+                            </v-col>
+                            <v-col v-if="dialog.item.type === 'Linear Spring'">
+                                <v-text-field v-model="dialog.item.stiff" label="Spring stiffness" suffix="lb/in" :rules="[ruleValN0]" required></v-text-field>
+                            </v-col>
+                            <v-col v-if="dialog.item.type === 'Torsion Spring'">
+                                <v-text-field v-model="dialog.item.stiff" label="Spring stiffness" suffix="lb-in/rad" :rules="[ruleValN0]" required></v-text-field>
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
                                 <v-slider 
+                                    v-model="slider"
                                     :tick-labels="ticksLabels"
                                     ticks
                                     tick-size="5" 
-                                    :step="(totalLength / 20)"
-                                    :max="totalLength"
+                                    :step="(beamL / 20)"
+                                    :max="beamL"
                                     thumb-size="35"
                                     thumb-label="always"
-                                    @mouseup="setSupportLocation">
+                                    @input="setSupportLocation">
                                     <template v-slot:thumb-label="{ value }">
-                                        {{ (value/totalLength * 100).toFixed(0) }}%
+                                        {{ (value/beamL * 100).toFixed(0) }}%
                                     </template>
                                 </v-slider>
                             </v-col>
@@ -123,7 +132,8 @@
             ...mapMutations(['updateBeamsSVG', 'updateLoadBCsSVG']),
             ...mapStatesTwoWay({
                 dialog: state => state.dialog,
-                totalLength: state => state.beams.totalLength
+                beamL: state => state.analysis.totalLength,
+                solved: state => state.analysis.solved
             }, function (value) {
                 this.$store.commit('updateCurrent', value)
             }),
@@ -131,6 +141,7 @@
 
         data: () => ({
             isValid: false,
+            slider: 0,
             ticksLabels: ['left', ...Array(9), 'middle', ...Array(9), 'right'],
         }),
 
@@ -139,7 +150,7 @@
                 if ((!v) && (v != 0)) return 'Required';
                 if (isNaN(v)) return 'Should be a number';
                 if (v < 0) return "Location shouldn't be less than zero";
-                if (v > this.totalLength) return "Location shouldn't be greater than beam total length";
+                if (v > this.beamL) return "Location shouldn't be greater than beam total length";
                 if ((this.dialog.item.locB) && (v > this.dialog.item.locB)) return "Start location should be less than end location";
                 return true
             },
@@ -148,7 +159,7 @@
                 if ((!v) && (v != 0)) return 'Required';
                 if (isNaN(v)) return 'Should be a number';
                 if (v < 0) return "Location shouldn't be less than zero";
-                if (v > this.totalLength) return "Location shouldn't be greater than beam total length";
+                if (v > this.beamL) return "Location shouldn't be greater than beam total length";
                 if (v < this.dialog.item.locA) return "End location should be grater than start location";
                 return true
             },
@@ -166,10 +177,9 @@
                 return true
             },
 
-            setSupportLocation(e) {
-                console.log(e);
+            setSupportLocation() {
                 Object.assign(this.dialog.item, {
-                    'locA': formatNumer(e)
+                    'locA': formatNumer(this.slider)
                 });
             },
 
@@ -183,9 +193,9 @@
                         if (Object.prototype.hasOwnProperty.call(item, prop)) {
                             item[prop] = parseFloat(item[prop]);
                         }
-                    };
-                const item = this.dialog.item;
-                this.$store.state.solved = false;
+                    },
+                    item = this.dialog.item;
+                this.$store.state.analysis.solved = false;
 
                 parseProp(item, 'length');
                 parseProp(item, 'modulus');
@@ -195,6 +205,7 @@
                 parseProp(item, 'valB');
                 parseProp(item, 'locA');
                 parseProp(item, 'locB');
+                parseProp(item, 'stiff');
 
                 if (this.dialog.itemIndex > -1) {
                     Object.assign(this.dialog.items[this.dialog.itemIndex], item);

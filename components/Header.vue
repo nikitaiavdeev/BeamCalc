@@ -19,7 +19,7 @@
       <v-btn text @click="$refs.fileUpload.click()">
         Open
       </v-btn>
-      <input v-show="false" ref="fileUpload" type="file" accept=".json" @change="openFile">
+      <input v-show="false" ref="fileUpload" type="file" accept=".json" @input="openFile">
 
       <v-divider
         inset
@@ -45,6 +45,9 @@
     <v-spacer></v-spacer>
 
     <span>{{ this.$store.state.appVersion }}</span>
+    <v-btn icon dense @click="sendMail">
+      <v-icon small>mdi-help</v-icon>
+    </v-btn>
   </v-app-bar>
 </template>
 
@@ -60,12 +63,13 @@
       saveFile(){
         this.$store.commit('saveFile');
       },
-      openFile(){
+      openFile(e){
         let file = this.$refs.fileUpload.files[0];
+
         if (!file) {
           return;
         }
-
+        
         let reader = new FileReader();
         reader.readAsText(file, "UTF-8");
         reader.onload = evt => {
@@ -74,10 +78,13 @@
         reader.onerror = evt => {
           console.error(evt);
         }
-      
+        e.target.value = ''; //Clean input
       },
       solveBeam(){
         this.$store.commit('solveBeam');
+      },
+      sendMail(){
+        window.location.href = "mailto:nikita.i.avdeev@gmail.com";
       }
     }
   }

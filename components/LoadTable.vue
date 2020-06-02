@@ -29,7 +29,9 @@
 
   export default {
     computed:{
-      ...mapState(['loads']),
+      ...mapState({
+        loads: state => state.analysis.loads
+      }),
     },
 
     data: () => ({
@@ -55,7 +57,7 @@
       deleteLoad (item) {
         const index = this.supports.indexOf(item);
         if( confirm('Are you sure you want to delete this Support?') ){
-          this.$store.state.solved = false;
+          this.$store.state.analysis.solved = false;
           this.supportss.splice(index, 1);
           this.updateLoadBCsSVG;
         }

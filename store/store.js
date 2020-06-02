@@ -32,16 +32,18 @@ const defaultState = {
     maxY: 0,
     scaleX: 0,
   },
-  beams: {
+  analysis: {
     totalLength: 0.0,
-    sections: [{
+    beams: [{
       length: 10,
       modulus: 10.3,
       inertia: 1.0,
     }],
+    supports: [],
+    loads: [],
+    solved: false,
+    solution: {},
   },
-  supports: [],
-  loads: [],
   dialog: {
     show: false,
     itemIndex: -1,
@@ -49,15 +51,13 @@ const defaultState = {
     item: null,
     items: null,
   },
-  solved: false,
-  solution: {},
-  appVersion: 'v0.0.1',
   snackbar: {
     message: '',
     color: '',
     timeout: 5000,
     show: false
-  }
+  },
+  appVersion: 'v0.0.2',
 };
 
 import {
@@ -94,7 +94,7 @@ export default new Vuex.Store({
     /*FILE*/
     saveFile: state => {
       const a = document.createElement("a");
-      const file = new Blob([JSON.stringify(state, null, 4)], {
+      const file = new Blob([JSON.stringify(state.analysis, null, 4)], {
         type: 'text/plain;charset=utf-8'
       });
       a.href = URL.createObjectURL(file);
@@ -103,8 +103,14 @@ export default new Vuex.Store({
       URL.revokeObjectURL(a.href);
     },
     openFile(state, file ) {
-      Object.assign(state, JSON.parse(file));
-      if(state.solved)
+      Object.assign(state, objectClone(defaultState));
+      Object.assign(state.analysis, JSON.parse(file));
+
+      state.screen.maxX = document.getElementById('canvas').clientWidth - 2 * MARGIN_X;
+      state.screen.maxY = document.getElementById('canvas').clientHeight - 2 * MARGIN_Y;
+      drawBeams(state);
+      drawForces(state);
+      if(state.analysis.solved)
         updateQMVGraphs(state);
     },
     /*FILE*/
@@ -116,16 +122,16 @@ export default new Vuex.Store({
         show: true,
         type: 'Beam',
         item: Object.assign({}, defaultBeam),
-        items: state.beams.sections,
+        items: state.analysis.beams,
       });
     },
     editBeam(state, item) {
       Object.assign(state.dialog, {
-        itemIndex: state.beams.sections.indexOf(item),
+        itemIndex: state.analysis.beams.indexOf(item),
         show: true,
         type: 'Beam',
         item: Object.assign({}, item),
-        items: state.beams.sections,
+        items: state.analysis.beams,
       });
     },
     /*BEAM*/
@@ -137,16 +143,16 @@ export default new Vuex.Store({
         show: true,
         type: 'Load',
         item: Object.assign({}, defaultLoad),
-        items: state.loads,
+        items: state.analysis.loads,
       });
     },
     editLoad(state, item) {
       Object.assign(state.dialog, {
-        itemIndex: state.loads.indexOf(item),
+        itemIndex: state.analysis.loads.indexOf(item),
         show: true,
         type: 'Load',
         item: Object.assign({}, item),
-        items: state.loads,
+        items: state.analysis.loads,
       });
     },
     /*Load*/
@@ -158,16 +164,16 @@ export default new Vuex.Store({
         show: true,
         type: 'Support',
         item: Object.assign({}, defaultBC),
-        items: state.supports,
+        items: state.analysis.supports,
       });
     },
     editBC(state, item) {
       Object.assign(state.dialog, {
-        itemIndex: state.supports.indexOf(item),
+        itemIndex: state.analysis.supports.indexOf(item),
         show: true,
         type: 'Support',
         item: Object.assign({}, item),
-        items: state.supports,
+        items: state.analysis.supports,
       });
     },
     /*BCs*/
@@ -182,7 +188,7 @@ export default new Vuex.Store({
     },
 
     updateQMVSVG: state => {
-      if (state.solved) updateQMVGraphs(state);
+      if (state.analysis.solved) updateQMVGraphs(state);
     },
     /*UPDATE SVG*/
 

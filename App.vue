@@ -65,7 +65,9 @@
 
   export default {
     computed:{
-      ...mapState(['solved']),
+      ...mapState({
+        solved: state => state.analysis.solved
+      }),
     },
 
     components: {

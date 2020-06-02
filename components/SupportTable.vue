@@ -31,7 +31,9 @@
 
   export default {
     computed:{
-      ...mapState(['supports']),
+      ...mapState({
+        supports: state => state.analysis.supports
+      }),
       ...mapMutations(['updateLoadBCsSVG']),
     },
 
@@ -39,6 +41,7 @@
       headers: [
         { text: 'Support Type', value: 'type'},
         { text: 'Position (in)', value: 'locA' },
+        { text: 'Spring Stiffness (lb/in or lb-in/rad)', value: 'stiff' },
         { text: 'Actions', value: 'action', sortable: false },
       ],
       editedItem: null,
@@ -58,7 +61,7 @@
       deleteBC (item) {
         const index = this.supports.indexOf(item);
         if( confirm('Are you sure you want to delete this Support?') ){
-            this.$store.state.solved = false;
+            this.$store.state.analysis.solved = false;
             this.supports.splice(index, 1);
             this.updateLoadBCsSVG;
         }

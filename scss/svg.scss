@@ -21,46 +21,53 @@ $support-fill-hover: #90A4AE;
     }
 }
 
-#qCanvas{
+#qCanvas {
     stroke: $force-stroke;
 }
 
-#mCanvas{
+#mCanvas {
     stroke: $moment-stroke;
 }
 
-#vCanvas{
+#vCanvas {
     stroke: $beam-stroke;
 }
 
-#qCanvas, #mCanvas, #vCanvas{
+#qCanvas,
+#mCanvas,
+#vCanvas {
     fill: none;
     stroke-width: 2px;
 
     .axis {
         marker-end: url("#arrow-axis");
     }
-    line{
+
+    line {
         stroke: $support-fill;
     }
+
     .yAxisTitle {
         text-anchor: start;
         alignment-baseline: middle;
         stroke: none;
         fill: $support-fill;
     }
+
     .xAxisTitle {
         text-anchor: middle;
         alignment-baseline: baseline;
         stroke: none;
         fill: $support-fill;
     }
+
     .yAxisText {
         text-anchor: end;
         alignment-baseline: middle;
         stroke: none;
         fill: $support-fill;
     }
+
     .xAxisText {
         text-anchor: middle;
         alignment-baseline: hanging;
@@ -214,29 +221,11 @@ $support-fill-hover: #90A4AE;
         }
     }
 
-    .support {
-        cursor: pointer;
-        fill: $support-fill;
-        stroke: $support-fill;
-
-        &:hover {
-            fill: $support-fill-hover;
-            stroke: $support-fill-hover;
-        }
-    }
-
-    .fix {
-        cursor: pointer;
-        fill: $support-fill;
-        stroke: $support-fill;
-
-        &:hover {
-            fill: $support-fill-hover;
-            stroke: $support-fill-hover;
-        }
-    }
-
-    .slide {
+    .support,
+    .fix,
+    .slide,
+    .linSpring,
+    .torSpring {
         cursor: pointer;
         fill: $support-fill;
         stroke: $support-fill;

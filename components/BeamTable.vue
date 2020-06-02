@@ -3,7 +3,7 @@
     <v-card-title dense>Beam</v-card-title>
   
     <v-card-text>
-      <v-data-table class="inputTable" :headers= "headers" :items="beams.sections" disable-sort hide-default-footer>
+      <v-data-table class="inputTable" :headers= "headers" :items="beams" disable-sort hide-default-footer>
         <template v-slot:item.action="{ item }">
           <v-icon small class="mr-2" @click="editBeam(item)">edit</v-icon>
           <v-icon small @click="deleteBeam(item)">delete</v-icon>
@@ -31,7 +31,9 @@
 
   export default {
     computed:{
-      ...mapState(['beams']),
+      ...mapState({
+        beams: state => state.analysis.beams,
+      }),
       ...mapMutations(['updateBeamsSVG', 'updateLoadBCsSVG']),
     },
 
@@ -57,10 +59,10 @@
       },
 
       deleteBeam (item) {
-        const index = this.beams.sections.indexOf(item);
+        const index = this.beams.indexOf(item);
         if( confirm('Are you sure you want to delete this beam?') ){
-          this.$store.state.solved = false;
-          this.beams.sections.splice(index, 1);
+          this.$store.state.analysis.solved = false;
+          this.beams.splice(index, 1);
           this.updateBeamsSVG;
           this.updateLoadBCsSVG;
         }

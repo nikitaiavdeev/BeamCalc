@@ -47,12 +47,12 @@
             </defs>
 
             <g>
-              <g class='beam' v-for="(section, index) in beams.sections" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
-                <polygon  :points="section.polygonFill"/>
-                <path  :d="section.path"/>
+              <g class='beam' v-for="(beam, index) in beams" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                <polygon  :points="beam.polygonFill"/>
+                <path  :d="beam.path"/>
                 <tooltip>
                   <span>Beam #{{index+1}}</span>
-                  <span>Length {{section.length}} in</span>
+                  <span>Length {{beam.length}} in</span>
                 </tooltip>
               </g>
             </g>
@@ -125,6 +125,22 @@
                     <span>Reaction is {{formatNum(item.rF)}} lb and {{formatNum(item.rM)}} lb-in at {{item.locA}} in</span>
                   </tooltip>
                 </g>
+                <g v-if="item.type === 'Linear Spring'" class="reaction" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <polyline :points="item.path"/>
+                  <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.rF)}} lb</text>
+                  <tooltip>                    
+                    <span>Reaction is {{formatNum(item.rF)}} lb at {{item.locA}} in</span>
+                    <span>Deflection is {{formatNum(item.rF/item.stiff)}} in</span>
+                  </tooltip>
+                </g>
+                <g v-if="item.type === 'Torsion Spring'" class="reaction" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                  <path :d="item.path" />
+                  <text :x="item.textA.x" :y="item.textA.y">{{formatNum(item.rM)}} lb-in</text>
+                  <tooltip>
+                    <span>Reaction is {{formatNum(item.rM)}} lb-in at {{item.locA}} in</span>
+                    <span>Section angle is {{formatNum(item.rM/item.angle)}} rad</span>
+                  </tooltip>
+                </g>
               </g>
             </g>
             <!-- Supports -->
@@ -149,7 +165,11 @@
     },
 
     computed:{
-      ...mapState(['beams', 'supports', 'loads']),
+      ...mapState({
+        beams: state => state.analysis.beams,
+        supports: state => state.analysis.supports, 
+        loads: state => state.analysis.loads
+      }),
     },
 
     data: () => ({

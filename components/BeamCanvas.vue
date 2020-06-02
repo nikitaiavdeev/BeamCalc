@@ -60,15 +60,31 @@
                 <path d="M 2,0 v 2 L10,10 v -2 Z" stroke-width="0"/>
                 <path d="M 2,10 v 2 L10,20 v -2 Z" stroke-width="0"/>
               </g>
+              <g id="linSpring">
+                <polyline points="0,-2 0,3 -12,8 12,13 0,18 0,23"  style="fill:none;stroke-width:2;stroke-linejoin:bevel"/>
+                <path d="M -12,23 H 12" stroke-width="2"/>
+                <path d="M -8,24 H -6 L-10,29 H -12 Z" stroke-width="0"/>
+                <path d="M -2,24 H 0 L -4,29 H -6 Z" stroke-width="0"/>
+                <path d="M 4,24 H 6 L 2,29 H 0 Z" stroke-width="0"/>
+                <path d="M 10,24 H 12 L 8,29 H 6 Z" stroke-width="0"/>
+              </g>
+              <g id="torSpring">
+                <path d="M0,0C-0.25,3.34 -3.92,1.92 -4.6,-0.34 -5.59,-3.65 -2.6,-6.61 0.52,-6.97 4.98,-7.49 8.66,-3.64 8.89,0.66 9.18,6.08 4.5,10.45 -0.78,10.57 -7.06,10.7 -12.06,5.25 -12.08,-0.89 -12.1,-7.96 -5.94,-13.55 1,-13.48 8.79,-13.4 14.93,-6.58 14.78,1.1 14.62,9.57 7.19,16 0,16" style="fill:none;stroke-width:2"/>
+                <path d="M -12,16 H 12" stroke-width="2"/>
+                <path d="M -8,17 H -6 L-10,22 H -12 Z" stroke-width="0"/>
+                <path d="M -2,17 H 0 L -4,22 H -6 Z" stroke-width="0"/>
+                <path d="M 4,17 H 6 L 2,22 H 0 Z" stroke-width="0"/>
+                <path d="M 10,17 H 12 L 8,22 H 6 Z" stroke-width="0"/>
+              </g>
             </defs>
 
             <g>
-              <g class='beam' v-for="(section, index) in sections" :key="'beam' + index" @click="editBeam(section)" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
-                <polygon :points="section.polygonFill"/>
-                <path :d="section.path"/>
+              <g class='beam' v-for="(beam, index) in beams" :key="'beam' + index" @click="editBeam(beam)" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+                <polygon :points="beam.polygonFill"/>
+                <path :d="beam.path"/>
                 <tooltip>
                   <span>Beam #{{ index + 1 }}</span>
-                  <span>Length {{ section.length }} in</span>
+                  <span>Length {{ beam.length }} in</span>
                 </tooltip>
               </g>
             </g>
@@ -136,6 +152,18 @@
                     <span>fixed at {{item.locA}} in</span>
                   </tooltip>
                 </g>
+                <g v-if="item.type === 'Linear Spring'" class="linSpring" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editBC(item)">
+                  <use xlink:href="#linSpring" :x="item.x" :y="item.y" /> 
+                  <tooltip>
+                    <span>linear spring {{item.stiff}} lb/in at {{item.locA}} in</span>
+                  </tooltip>
+                </g>
+                <g v-if="item.type === 'Torsion Spring'" class="torSpring" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editBC(item)">
+                  <use xlink:href="#torSpring" :x="item.x" :y="item.y" /> 
+                  <tooltip>
+                    <span>torsion spring {{item.stiff}} lb-in/rad at {{item.locA}} in</span>
+                  </tooltip>
+                </g>
               </g>
             </g>
             <!-- Supports -->
@@ -164,9 +192,9 @@
 
     computed:{
       ...mapState({
-        sections: state => state.beams.sections,
-        supports: state => state.supports, 
-        loads: state => state.loads
+        beams: state => state.analysis.beams,
+        supports: state => state.analysis.supports, 
+        loads: state => state.analysis.loads
       }),
       ...mapMutations(['updateBeamsSVG', 'updateLoadBCsSVG', 'updateQMVSVG']),
       ...mapStatesTwoWay({

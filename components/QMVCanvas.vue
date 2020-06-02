@@ -171,10 +171,10 @@
       computed: {
         ...mapMutations(['updateQMVGraphs']),
         ...mapState({
-            graphQ: state => state.solution.graphQ,
-            graphM: state => state.solution.graphM,
-            graphV: state => state.solution.graphV,
-            beamL: state => state.beams.totalLength
+            graphQ: state => state.analysis.solution.graphQ,
+            graphM: state => state.analysis.solution.graphM,
+            graphV: state => state.analysis.solution.graphV,
+            beamL: state => state.analysis.totalLength
         }),
         canvasHeight: () => {
           return GRAPH_HEIGHT;
