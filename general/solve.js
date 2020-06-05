@@ -9,9 +9,10 @@ const solve = (state) => {
     const
         beams = state.analysis.beams,
         supports = state.analysis.supports,
-        loads = state.analysis.loads;
+        loads = state.analysis.loads,
+        beamL = state.analysis.totalLength;
 
-    let
+    let ings,
         fSum = 0,
         mSum = 0,
         n = 0;
@@ -26,7 +27,7 @@ const solve = (state) => {
         ans = math.zeros(n + 2, 1);
 
     n = 0;
-    
+
     // no angle or displ in sum(F) = 0 or sum(M) = 0
     arr.set([0, 0], 0);
     arr.set([0, 1], 0);
@@ -45,17 +46,9 @@ const solve = (state) => {
     });
 
     loads.forEach(f => {
-        if (f.type === 'Force') {
-            fSum += f.valA;
-            mSum += f.valA * f.locA;
-        } else if (f.type === 'Moment') {
-            mSum += f.valA;
-        } else if (f.type === 'Distributed Force') {
-            fSum += (f.valA + f.valB) * (f.locB - f.locA) / 2;
-            mSum += f.valA * (f.locB ** 2 - f.locA ** 2) / 2 + (f.valB - f.valA) * (2 * f.locB ** 2 - f.locA * f.locB - f.locA ** 2) / 6;
-        } else if (f.type === 'Distributed Moment') {
-            mSum += (f.valA + f.valB) * (f.locB - f.locA) / 2;
-        }
+        ings = integral(beams, f, beamL, '');
+        fSum += ings[0];
+        mSum += ings[1];
     });
 
     ans.set([0, 0], -fSum);
@@ -96,8 +89,8 @@ const solve = (state) => {
     });
 
     const
-        nPoints = 300,
-        beamL = state.analysis.totalLength;
+        nPoints = 300;
+
 
     let q, dq, m, dm, v, dx, lb,
         x = 0,
@@ -126,11 +119,10 @@ const solve = (state) => {
         }
 
         supports.forEach(s => {
-            q += pointInteg(beams, s.rF, s.locA, x, 'Force', 'Force');
-            m -= pointInteg(beams, s.rF, s.locA, x, 'Force', 'Moment');
-            m -= pointInteg(beams, s.rM, s.locA, x, 'Moment', 'Moment');
-            v += pointInteg(beams, s.rF, s.locA, x, 'Force', 'Displacement');
-            v += pointInteg(beams, s.rM, s.locA, x, 'Moment', 'Displacement');
+            ings = integral(beams, s, x, '');
+            q += ings[0];
+            m -= ings[1];
+            v += ings[3];
 
             if (s.locA === x) {
                 dq += s.rF;
@@ -143,29 +135,16 @@ const solve = (state) => {
         });
 
         loads.forEach(f => {
-            if (f.type === 'Force') {
-                q += pointInteg(beams, f.valA, f.locA, x, 'Force', 'Force');
-                m -= pointInteg(beams, f.valA, f.locA, x, 'Force', 'Moment');
-                v += pointInteg(beams, f.valA, f.locA, x, 'Force', 'Displacement');
+            ings = integral(beams, f, x, '');
+            q += ings[0];
+            m -= ings[1];
+            v += ings[3];
 
-                if (f.locA === x) {
-                    dq += f.valA;
-                }
-            } else if (f.type === 'Moment') {
-                m += pointInteg(beams, f.valA, f.locA, x, 'Moment', 'Moment');
-                v += pointInteg(beams, f.valA, f.locA, x, 'Moment', 'Displacement');
+            if ((f.type === 'Force') && (f.locA === x))
+                dq += f.valA;
+            else if ((f.type === 'Moment') && (f.locA === x))
+                dm += f.valA;
 
-                if (f.locA === x) {
-                    dm += f.valA;
-                }
-            } else if (f.type === 'Distributed Force') {
-                q += distributedInteg(beams, f, x, 'Force', 'Force');
-                m -= distributedInteg(beams, f, x, 'Force', 'Moment');
-                v += distributedInteg(beams, f, x, 'Force', 'Displacement');
-            } else if (f.type === 'Distributed Moment') {
-                m -= distributedInteg(beams, f, x, 'Moment', 'Moment');
-                v += distributedInteg(beams, f, x, 'Moment', 'Displacement');
-            }
             if ((f.locA > x) && (f.locA < x + dx)) {
                 dx = f.locA - x;
             }
@@ -228,10 +207,11 @@ const displEq0 = (arr, ans, n, state, inp) => {
         supports = state.analysis.supports,
         loads = state.analysis.loads,
         x = inp.locA,
+        beamL = state.analysis.totalLength,
         coeff = inp.type === 'Linear Spring' ? inp.stiff : 1;
 
     arr.set([0, 2 + n], coeff); //sum(F) = 0
-    arr.set([1, 2 + n], coeff * x); //sum(M) = 0
+    arr.set([1, 2 + n], coeff * (beamL - x)); //sum(M) = 0
 
     arr.set([2 + n, 0], 1); //v0
     arr.set([2 + n, 1], x); //theta0
@@ -242,16 +222,40 @@ const displEq0 = (arr, ans, n, state, inp) => {
     supports.forEach(s => {
         if ((s !== inp) && (s.locA < x)) {
             if (s.type === 'Fixed') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Displacement'));
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Displacement'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Force',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Displacement'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Moment',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Displacement'));
             } else if (s.type === 'Support') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Displacement'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Force',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Displacement'));
             } else if (s.type === 'Slide') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Displacement'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Moment',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Displacement'));
             } else if (s.type === 'Linear Spring') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, s.stiff, s.locA, x, 'Force', 'Displacement'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Force',
+                    valA: s.stiff,
+                    locA: s.locA
+                }, x, 'Displacement'));
             } else if (s.type === 'Torsion Spring') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, s.stiff, s.locA, x, 'Moment', 'Displacement'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Moment',
+                    valA: s.stiff,
+                    locA: s.locA
+                }, x, 'Displacement'));
             }
         } else if (s === inp) {
             if (inp.type === 'Linear Spring')
@@ -262,10 +266,7 @@ const displEq0 = (arr, ans, n, state, inp) => {
     });
 
     loads.forEach(f => {
-        if (f.type === 'Force') vSum += pointInteg(beams, f.valA, f.locA, x, 'Force', 'Displacement');
-        else if (f.type === 'Moment') vSum += pointInteg(beams, f.valA, f.locA, x, 'Moment', 'Displacement');
-        else if (f.type === 'Distributed Force') vSum += distributedInteg(beams, f, x, 'Force', 'Displacement');
-        else if (f.type === 'Distributed Moment') vSum += distributedInteg(beams, f, x, 'Moment', 'Displacement');
+        vSum += integral(beams, f, x, 'Displacement');
     });
 
     ans.set([2 + n, 0], -vSum);
@@ -279,7 +280,7 @@ const angleEq0 = (arr, ans, n, state, inp) => {
         x = inp.locA,
         coeff = inp.type === 'Torsion Spring' ? inp.stiff : 1;
 
-    arr.set([1, 2 + n], coeff); //sum(M) = 0
+    arr.set([1, 2 + n], -coeff); //sum(M) = 0
 
     arr.set([2 + n, 1], 1); //theta0
 
@@ -289,14 +290,40 @@ const angleEq0 = (arr, ans, n, state, inp) => {
     supports.forEach(s => {
         if ((s !== inp) && (s.locA < x)) {
             if (s.type === 'Fixed') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Angle'));
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Angle'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Force',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Angle'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Moment',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Angle'));
             } else if (s.type === 'Support') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Force', 'Angle'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Force',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Angle'));
             } else if (s.type === 'Slide') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, 1, s.locA, x, 'Moment', 'Angle'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Moment',
+                    valA: 1,
+                    locA: s.locA
+                }, x, 'Angle'));
+            } else if (s.type === 'Linear Spring') {
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Force',
+                    valA: s.stiff,
+                    locA: s.locA
+                }, x, 'Angle'));
             } else if (s.type === 'Torsion Spring') {
-                arr.set([2 + n, 2 + i++], pointInteg(beams, s.stiff, s.locA, x, 'Moment', 'Angle'));
+                arr.set([2 + n, 2 + i++], integral(beams, {
+                    type: 'Moment',
+                    valA: s.stiff,
+                    locA: s.locA
+                }, x, 'Angle'));
             }
         } else if (s === inp) {
             if (inp.type === 'Torsion Spring')
@@ -307,142 +334,85 @@ const angleEq0 = (arr, ans, n, state, inp) => {
     });
 
     loads.forEach(f => {
-        if (f.type === 'Force') tSum += pointInteg(beams, f.valA, f.locA, x, 'Force', 'Angle')
-        else if (f.type === 'Moment') tSum += pointInteg(beams, f.valA, f.locA, x, 'Moment', 'Angle');
-        else if (f.type === 'Distributed Force') tSum += distributedInteg(beams, f, x, 'Force', 'Angle');
-        else if (f.type === 'Distributed Moment') tSum += distributedInteg(beams, f, x, 'Moment', 'Angle');
+        tSum += integral(beams, f, x, 'Angle');
     });
 
     ans.set([2 + n, 0], -tSum);
 }
 
-const pointInteg = (beams, v, loc, x, load, equation) => {
-    if (loc >= x) return 0;
-
+const integral = (beams, f, x, equation) => {
+    let ans = equation === '' ? [0, 0, 0, 0] : 0;
+    if (f.locA >= x) return ans;
     let
-        p = (load === 'Moment') ? 0 : 1,
-        s = (load === 'Moment') ? -1 : 1,
+        ql = f.type == 'Distributed Force' ? f.valA : 0,
+        qk = f.type == 'Distributed Force' ? (f.valB - f.valA) / (f.locB - f.locA) : 0,
+        ml = f.type == 'Distributed Moment' ? -f.valA : 0,
+        mk = f.type == 'Distributed Force' ? -(f.valB - f.valA) / (f.locB - f.locA) : 0,
+        q = f.type == 'Force' ? f.valA : Object.prototype.hasOwnProperty.call(f, 'rF') ? f.rF : 0,
+        m = f.type == 'Moment' ? -f.valA : Object.prototype.hasOwnProperty.call(f, 'rM') ? -f.rM : 0,
         x0 = 0,
         x1 = 0,
-        a = 0,
+        t = 0,
+        v = 0,
         ei;
 
-    if (equation === 'Force') {
-        p--;
-    } else if (equation === 'Angle') {
-        p++;
-        s *= 10 ** -3; //msi to psi
-    } else if (equation === 'Displacement') {
-        p += 2;
-        s *= 10 ** -3; //msi to psi 
-    }
+    for (const b of beams) {
+        x1 += b.length;
+        ei = 1 / b.inertia / b.modulus / 10 ** 6; //msi to psi
+        if (x1 > f.locA) {
+            if (x < x1)
+                x1 = x;
+            if (f.locA > x0)
+                x0 = f.locA;
 
-    const
-        d = 1 / factorial(p);
+            v += t * (x1 - x0) + ei * (
+                m * (x1 - x0) ** 2 / 2 +
+                q * (x1 - x0) ** 3 / 6 +
+                ml * (x1 - x0) ** 3 / 6 + mk * (x1 - x0) ** 4 / 24 +
+                ql * (x1 - x0) ** 4 / 24 + qk * (x1 - x0) ** 5 / 120);
+            t += ei * (
+                m * (x1 - x0) +
+                q * (x1 - x0) ** 2 / 2 +
+                ml * (x1 - x0) ** 2 / 2 + mk * (x1 - x0) ** 3 / 6 +
+                ql * (x1 - x0) ** 3 / 6 + qk * (x1 - x0) ** 4 / 24);
 
-    if ((equation === 'Force') || (equation === 'Moment')) {
-        a += v * (x - loc) ** p * d;
-    } else {
-        for (const b of beams) {
-            x1 += b.length;
-            ei = 1 / b.inertia / b.modulus;
-            if (x1 > loc) {
-                if (x < x1)
-                    x1 = x;
-                if (x0 > loc)
-                    a += v * ((x1 - loc) ** p - (x0 - loc) ** p) * ei * d;
-                else
-                    a += v * (x1 - loc) ** p * ei * d;
-                if (x === x1) {
-                    break;
-                }
+            m += q * (x1 - x0) +
+                ml * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
+                ql * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
+
+            if (f.locB < x1) {
+                if (f.locB > x0)
+                    x0 = f.locB;
+
+                v -= ei * (
+                    ml * (x1 - x0) ** 3 / 6 + mk * (x1 - x0) ** 4 / 24 +
+                    ql * (x1 - x0) ** 4 / 24 + qk * (x1 - x0) ** 5 / 120);
+                t -= ei * (
+                    ml * (x1 - x0) ** 2 / 2 + mk * (x1 - x0) ** 3 / 6 +
+                    ql * (x1 - x0) ** 3 / 6 + qk * (x1 - x0) ** 4 / 24);
+                q -= ql * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
+                m -= ml * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
+                    ql * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
             }
-            x0 = x1;
+
+            q += ql * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
+
+            if (x === x1)
+                break;
         }
+        x0 = x1;
     }
 
-    return s * a;
-}
-
-const distributedInteg = (beams, f, x, load, equation) => {
-    if (f.locA >= x) return 0;
-    let
-        p = (load === 'Moment') ? 1 : 2,
-        p1 = (load === 'Moment') ? 2 : 3,
-        s = (load === 'Moment') ? -1 : 1,
-        x0 = 0,
-        x1 = 0,
-        a = 0,
-        ei;
-
-    if (equation === 'Force') {
-        p--;
-        p1--;
-    } else if (equation === 'Angle') {
-        p++;
-        p1++;
-        s *= 10 ** -3; //msi to psi
-    } else if (equation === 'Displacement') {
-        p += 2;
-        p1 += 2;
-        s *= 10 ** -3; //msi to psi 
-    }
-
-    const
-        d = 1 / factorial(p),
-        d1 = 1 / factorial(p1),
-        v = f.valA,
-        vB = f.valB,
-        k = (f.valB - f.valA) / (f.locB - f.locA);
-
-    if ((equation === 'Force') || (equation === 'Moment')) {
-        a += v * (x - f.locA) ** p * d;
-        a += k * (x - f.locA) ** p1 * d1;
-        if (f.locB < x) {
-            a -= vB * (x - f.locB) ** p * d;
-            a -= k * (x - f.locB) ** p1 * d1;
-        }
-    } else {
-        for (const b of beams) {
-            x1 += b.length;
-            ei = 1 / b.inertia / b.modulus;
-            if (x1 > f.locA) {
-                if (x < x1)
-                    x1 = x;
-                if (x0 > f.locA) {
-                    a += v * ((x1 - f.locA) ** p - (x0 - f.locA) ** p) * ei * d;
-                    a += k * ((x1 - f.locA) ** p1 - (x0 - f.locA) ** p1) * ei * d1;
-
-                    if (f.locB < x1) {
-                        a -= vB * ((x1 - f.locB) ** p - (x0 - f.locB) ** p) * ei * d;
-                        a -= k * ((x1 - f.locB) ** p1 - (x0 - f.locB) ** p1) * ei * d1;
-                    }
-                } else {
-                    a += v * (x1 - f.locA) ** p * ei * d;
-                    a += k * (x1 - f.locA) ** p1 * ei * d1;
-
-                    if (f.locB < x1) {
-                        a -= vB * (x1 - f.locB) ** p * ei * d;
-                        a -= k * (x1 - f.locB) ** p1 * ei * d1;
-                    }
-                }
-                if (x === x1)
-                    break;
-            }
-            x0 = x1;
-        }
-    }
-
-    return s * a;
-}
-
-const factorial = (num) => {
-    if (num === 0 || num === 1)
-        return 1;
-    for (var i = num - 1; i >= 1; i--) {
-        num *= i;
-    }
-    return num;
+    if (equation === 'Force')
+        return q;
+    else if (equation === 'Moment')
+        return m;
+    else if (equation === 'Angle')
+        return t;
+    else if (equation === 'Displacement')
+        return v;
+    else
+        return [q, m, t, v];
 }
 
 export {

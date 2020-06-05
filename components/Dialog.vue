@@ -147,7 +147,7 @@
 
         methods: {
             ruleLocA(v) {
-                if ((!v) && (v != 0)) return 'Required';
+                if (v === '') return 'Required';
                 if (isNaN(v)) return 'Should be a number';
                 if (v < 0) return "Location shouldn't be less than zero";
                 if (v > this.beamL) return "Location shouldn't be greater than beam total length";
@@ -156,7 +156,7 @@
             },
 
             ruleLocB(v) {
-                if ((!v) && (v != 0)) return 'Required';
+                if (v === '') return 'Required';
                 if (isNaN(v)) return 'Should be a number';
                 if (v < 0) return "Location shouldn't be less than zero";
                 if (v > this.beamL) return "Location shouldn't be greater than beam total length";
@@ -166,13 +166,13 @@
 
             ruleValN0(v) {
                 if (v === 0) return "Value shouldn't be equal to zero";
-                if ((!v) && (v != 0)) return 'Required';
+                if (v === '') return 'Required';
                 if (isNaN(v)) return 'Should be a number';
                 return true
             },
 
             ruleVal(v) {
-                if ((!v) && (v != 0)) return 'Required';
+                if (v === '') return 'Required';
                 if (isNaN(v)) return 'Should be a number';
                 return true
             },
@@ -190,9 +190,8 @@
             save() {
                 const 
                     parseProp = (item, prop) => {
-                        if (Object.prototype.hasOwnProperty.call(item, prop)) {
+                        if (Object.prototype.hasOwnProperty.call(item, prop))
                             item[prop] = parseFloat(item[prop]);
-                        }
                     },
                     item = this.dialog.item;
                 this.$store.state.analysis.solved = false;
@@ -206,12 +205,20 @@
                 parseProp(item, 'locA');
                 parseProp(item, 'locB');
                 parseProp(item, 'stiff');
-
+                
+                if((this.dialog.type === 'Support') && (item.type !== 'Linear Spring') && (item.type !== 'Torsion Spring')){
+                    Object.assign(item, {stiff: ''});
+                }
+                if((this.dialog.type === 'Load') && (item.type !== 'Distributed Force') && (item.type !== 'Distributed Moment')){
+                    Object.assign(item, {locB: '', valB: ''});
+                }
+            
                 if (this.dialog.itemIndex > -1) {
                     Object.assign(this.dialog.items[this.dialog.itemIndex], item);
                 } else {
                     this.dialog.items.push(item);
-                    this.dialog.items.sort((a, b) => (a.locA > b.locA) ? 1 : -1);
+                    if (this.dialog.type !== 'Beam')
+                        this.dialog.items.sort((a, b) => (a.locA > b.locA) ? 1 : -1);
                 }
                 this.updateBeamsSVG;
                 this.updateLoadBCsSVG;

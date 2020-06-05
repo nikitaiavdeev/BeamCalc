@@ -57,7 +57,7 @@ const defaultState = {
     timeout: 5000,
     show: false
   },
-  appVersion: 'v0.0.2',
+  appVersion: 'v0.0.3',
 };
 
 import {
@@ -102,7 +102,7 @@ export default new Vuex.Store({
       a.click();
       URL.revokeObjectURL(a.href);
     },
-    openFile(state, file ) {
+    openFile(state, file) {
       Object.assign(state, objectClone(defaultState));
       Object.assign(state.analysis, JSON.parse(file));
 
@@ -110,7 +110,7 @@ export default new Vuex.Store({
       state.screen.maxY = document.getElementById('canvas').clientHeight - 2 * MARGIN_Y;
       drawBeams(state);
       drawForces(state);
-      if(state.analysis.solved)
+      if (state.analysis.solved)
         updateQMVGraphs(state);
     },
     /*FILE*/

@@ -85,6 +85,8 @@
                 <tooltip>
                   <span>Beam #{{ index + 1 }}</span>
                   <span>Length {{ beam.length }} in</span>
+                  <span>Modulus {{ beam.modulus }} msi</span>
+                  <span>Inertia {{ beam.inertia }} in⁴</span>
                 </tooltip>
               </g>
             </g>
