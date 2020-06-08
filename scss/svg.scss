@@ -13,6 +13,7 @@ $moment-stroke: #E65100;
 $moment-hover: #FB8C00;
 $support-fill: #263238;
 $support-fill-hover: #90A4AE;
+$toolTip:#616161;
 
 .inputTable {
     tr td:last-child {
@@ -49,28 +50,19 @@ $support-fill-hover: #90A4AE;
 
     .yAxisTitle {
         text-anchor: start;
-        alignment-baseline: middle;
         stroke: none;
         fill: $support-fill;
     }
 
-    .xAxisTitle {
+    .xAxisTitle,
+    .xAxisText {
         text-anchor: middle;
-        alignment-baseline: baseline;
         stroke: none;
         fill: $support-fill;
     }
 
     .yAxisText {
         text-anchor: end;
-        alignment-baseline: middle;
-        stroke: none;
-        fill: $support-fill;
-    }
-
-    .xAxisText {
-        text-anchor: middle;
-        alignment-baseline: hanging;
         stroke: none;
         fill: $support-fill;
     }
@@ -270,7 +262,7 @@ $support-fill-hover: #90A4AE;
 }
 
 #svg-toolTip {
-    background: rgba(97, 97, 97, 0.9);
+    background: $toolTip;
     color: #FFFFFF;
     border-radius: 4px;
     font-size: 14px;
@@ -283,9 +275,26 @@ $support-fill-hover: #90A4AE;
     width: auto;
     opacity: 1;
     pointer-events: none;
+    margin-top: 8px;
+    margin-left: -16px;
 
     span {
         flex: 1 1 auto;
+    }
+
+    ::before {
+        content: '';
+        display: block;
+        width: 0;
+        height: 0;
+        position: absolute;
+
+        border-bottom: 8px solid $toolTip;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        left: 8px;
+
+        top: -8px;
     }
 }
 

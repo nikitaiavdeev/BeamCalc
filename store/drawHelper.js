@@ -257,12 +257,20 @@ const getTransform = (graph, state) => {
       return x * scaleX + 2 * MARGIN_X;
     },
     getY = (y) => {
-      return y * scaleY + (GRAPH_HEIGHT / 2 - scaleY * (graph.max + graph.min) / 2);
+      return y * scaleY + (GRAPH_HEIGHT - scaleY * (graph.max + graph.min)) / 2;
+    },
+    getScreenX = (x) => {
+      return (x - 2 * MARGIN_X) / scaleX;
+    },
+    getScreenY = (y) => {
+      return (y - (GRAPH_HEIGHT - scaleY * (graph.max + graph.min)) / 2) / scaleY;
     };
 
   Object.assign(graph, {
     'getX': getX,
     'getY': getY,
+    'getScreenX': getScreenX,
+    'getScreenY': getScreenY,
     'transform': 'translate(' + 2 * MARGIN_X + ',' + (GRAPH_HEIGHT / 2 - scaleY * (graph.max + graph.min) / 2) + ')' +
       ' scale(' + scaleX + ', ' + scaleY + ')'
   });

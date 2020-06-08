@@ -45,9 +45,9 @@
     <v-spacer></v-spacer>
 
     <span>{{ this.$store.state.appVersion }}</span>
-    <v-btn icon dense @click="sendMail">
-      <v-icon small>mdi-help</v-icon>
-    </v-btn>
+      <v-btn icon dense @click="sendMail">
+        <v-icon small>mdi-help</v-icon>
+      </v-btn>
   </v-app-bar>
 </template>
 

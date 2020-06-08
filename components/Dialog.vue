@@ -125,7 +125,7 @@
 <script>
     import mapStatesTwoWay from '../store/mapTwoWay'
     import { mapMutations } from 'vuex'
-    import {formatNumer} from '../general/helpers.js'
+    import { formatNumer } from '../general/helpers.js'
 
     export default {
         computed: {

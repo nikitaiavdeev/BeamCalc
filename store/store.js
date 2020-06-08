@@ -18,7 +18,7 @@ const
   },
   defaultBC = {
     type: 'Fixed',
-    locA: ''
+    locA: '0'
   },
   defaultBeam = {
     length: 1,
@@ -57,7 +57,7 @@ const defaultState = {
     timeout: 5000,
     show: false
   },
-  appVersion: 'v0.0.3',
+  appVersion: 'v0.0.4',
 };
 
 import {
@@ -73,7 +73,7 @@ import {
 } from '../general/helpers.js'
 
 export default new Vuex.Store({
-  state: objectClone(defaultState), //Object.assign({}, defaultState),
+  state: objectClone(defaultState),
 
   mutations: {
     resetState(state) {

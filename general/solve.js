@@ -36,12 +36,12 @@ const solve = (state) => {
 
     supports.forEach(s => {
         if (s.type === 'Fixed') {
-            displEq0(arr, ans, n++, state, s);
-            angleEq0(arr, ans, n++, state, s);
+            bcEq0(arr, ans, n++, state, s, 'Displacement');
+            bcEq0(arr, ans, n++, state, s, 'Angle');
         } else if ((s.type === 'Support') || (s.type === 'Linear Spring')) {
-            displEq0(arr, ans, n++, state, s);
+            bcEq0(arr, ans, n++, state, s, 'Displacement');
         } else if ((s.type === 'Slide') || (s.type === 'Torsion Spring')) {
-            angleEq0(arr, ans, n++, state, s);
+            bcEq0(arr, ans, n++, state, s, 'Angle');
         }
     });
 
@@ -94,9 +94,9 @@ const solve = (state) => {
 
     let q, dq, m, dm, v, dx, lb,
         x = 0,
-        pathQ = 'M0,0',
-        pathM = 'M0,0',
-        pathV = 'M0,' + v0,
+        arrQ = [],
+        arrM = [],
+        arrV = [],
         maxQ, minQ, maxM, minM, maxV, minV;
 
     do {
@@ -168,9 +168,11 @@ const solve = (state) => {
         if ((v > maxV) || (x === 0)) maxV = v;
         if ((v < minV) || (x === 0)) minV = v;
 
-        pathQ += 'L' + x + ',' + q + ((dq != 0) ? 'L' + x + ',' + (q + dq) : '');
-        pathM += 'L' + x + ',' + m + ((dm != 0) ? 'L' + x + ',' + (m + dm) : '');
-        pathV += 'L' + x + ',' + v;
+        arrQ.push([x, q]);
+        if (dq != 0) arrQ.push([x, q + dq]);
+        arrM.push([x, m]);
+        if (dm != 0) arrM.push([x, m + dm]);
+        arrV.push([x, v]);
 
         if (x === beamL) break;
         x += (x + dx <= beamL) ? dx : beamL - x;
@@ -178,17 +180,17 @@ const solve = (state) => {
 
     Object.assign(state.analysis.solution, {
         graphQ: {
-            'path': pathQ,
+            'arr': arrQ,
             'pathMax': maxQ,
             'pathMin': minQ,
         },
         graphM: {
-            'path': pathM,
+            'arr': arrM,
             'pathMax': maxM,
             'pathMin': minM,
         },
         graphV: {
-            'path': pathV,
+            'arr': arrV,
             'pathMax': maxV,
             'pathMin': minV,
         }
@@ -201,23 +203,29 @@ const solve = (state) => {
     drawForces(state);
 }
 
-const displEq0 = (arr, ans, n, state, inp) => {
+const bcEq0 = (arr, ans, n, state, inp, bc) => {
     const
         beams = state.analysis.beams,
         supports = state.analysis.supports,
         loads = state.analysis.loads,
         x = inp.locA,
         beamL = state.analysis.totalLength,
-        coeff = inp.type === 'Linear Spring' ? inp.stiff : 1;
+        coeff = (inp.type === 'Linear Spring' || inp.type === 'Torsion Spring') ? inp.stiff : 1;
 
-    arr.set([0, 2 + n], coeff); //sum(F) = 0
-    arr.set([1, 2 + n], coeff * (beamL - x)); //sum(M) = 0
+    if (bc === 'Displacement') {
+        arr.set([0, 2 + n], coeff); //sum(F) = 0
+        arr.set([1, 2 + n], coeff * (beamL - x)); //sum(M) = 0
 
-    arr.set([2 + n, 0], 1); //v0
-    arr.set([2 + n, 1], x); //theta0
+        arr.set([2 + n, 0], 1); //v0
+        arr.set([2 + n, 1], x); //theta0
+    } else if (bc === 'Angle') {
+        arr.set([1, 2 + n], -coeff); //sum(M) = 0
+
+        arr.set([2 + n, 1], 1); //theta0
+    }
 
     let i = 0,
-        vSum = 0;
+        laodSum = 0;
 
     supports.forEach(s => {
         if ((s !== inp) && (s.locA < x)) {
@@ -226,39 +234,39 @@ const displEq0 = (arr, ans, n, state, inp) => {
                     type: 'Force',
                     valA: 1,
                     locA: s.locA
-                }, x, 'Displacement'));
+                }, x, bc));
                 arr.set([2 + n, 2 + i++], integral(beams, {
                     type: 'Moment',
                     valA: 1,
                     locA: s.locA
-                }, x, 'Displacement'));
+                }, x, bc));
             } else if (s.type === 'Support') {
                 arr.set([2 + n, 2 + i++], integral(beams, {
                     type: 'Force',
                     valA: 1,
                     locA: s.locA
-                }, x, 'Displacement'));
+                }, x, bc));
             } else if (s.type === 'Slide') {
                 arr.set([2 + n, 2 + i++], integral(beams, {
                     type: 'Moment',
                     valA: 1,
                     locA: s.locA
-                }, x, 'Displacement'));
+                }, x, bc));
             } else if (s.type === 'Linear Spring') {
                 arr.set([2 + n, 2 + i++], integral(beams, {
                     type: 'Force',
                     valA: s.stiff,
                     locA: s.locA
-                }, x, 'Displacement'));
+                }, x, bc));
             } else if (s.type === 'Torsion Spring') {
                 arr.set([2 + n, 2 + i++], integral(beams, {
                     type: 'Moment',
                     valA: s.stiff,
                     locA: s.locA
-                }, x, 'Displacement'));
+                }, x, bc));
             }
         } else if (s === inp) {
-            if (inp.type === 'Linear Spring')
+            if ((inp.type === 'Linear Spring') || (inp.type === 'Torsion Spring'))
                 arr.set([2 + n, 2 + i++], 1);
             else
                 i++;
@@ -266,88 +274,22 @@ const displEq0 = (arr, ans, n, state, inp) => {
     });
 
     loads.forEach(f => {
-        vSum += integral(beams, f, x, 'Displacement');
+        laodSum += integral(beams, f, x, bc);
     });
 
-    ans.set([2 + n, 0], -vSum);
-}
-
-const angleEq0 = (arr, ans, n, state, inp) => {
-    const
-        beams = state.analysis.beams,
-        supports = state.analysis.supports,
-        loads = state.analysis.loads,
-        x = inp.locA,
-        coeff = inp.type === 'Torsion Spring' ? inp.stiff : 1;
-
-    arr.set([1, 2 + n], -coeff); //sum(M) = 0
-
-    arr.set([2 + n, 1], 1); //theta0
-
-    let i = 0,
-        tSum = 0;
-
-    supports.forEach(s => {
-        if ((s !== inp) && (s.locA < x)) {
-            if (s.type === 'Fixed') {
-                arr.set([2 + n, 2 + i++], integral(beams, {
-                    type: 'Force',
-                    valA: 1,
-                    locA: s.locA
-                }, x, 'Angle'));
-                arr.set([2 + n, 2 + i++], integral(beams, {
-                    type: 'Moment',
-                    valA: 1,
-                    locA: s.locA
-                }, x, 'Angle'));
-            } else if (s.type === 'Support') {
-                arr.set([2 + n, 2 + i++], integral(beams, {
-                    type: 'Force',
-                    valA: 1,
-                    locA: s.locA
-                }, x, 'Angle'));
-            } else if (s.type === 'Slide') {
-                arr.set([2 + n, 2 + i++], integral(beams, {
-                    type: 'Moment',
-                    valA: 1,
-                    locA: s.locA
-                }, x, 'Angle'));
-            } else if (s.type === 'Linear Spring') {
-                arr.set([2 + n, 2 + i++], integral(beams, {
-                    type: 'Force',
-                    valA: s.stiff,
-                    locA: s.locA
-                }, x, 'Angle'));
-            } else if (s.type === 'Torsion Spring') {
-                arr.set([2 + n, 2 + i++], integral(beams, {
-                    type: 'Moment',
-                    valA: s.stiff,
-                    locA: s.locA
-                }, x, 'Angle'));
-            }
-        } else if (s === inp) {
-            if (inp.type === 'Torsion Spring')
-                arr.set([2 + n, 2 + i++], 1);
-            else
-                i++;
-        }
-    });
-
-    loads.forEach(f => {
-        tSum += integral(beams, f, x, 'Angle');
-    });
-
-    ans.set([2 + n, 0], -tSum);
+    ans.set([2 + n, 0], -laodSum);
 }
 
 const integral = (beams, f, x, equation) => {
     let ans = equation === '' ? [0, 0, 0, 0] : 0;
     if (f.locA >= x) return ans;
     let
-        ql = f.type == 'Distributed Force' ? f.valA : 0,
-        qk = f.type == 'Distributed Force' ? (f.valB - f.valA) / (f.locB - f.locA) : 0,
-        ml = f.type == 'Distributed Moment' ? -f.valA : 0,
-        mk = f.type == 'Distributed Force' ? -(f.valB - f.valA) / (f.locB - f.locA) : 0,
+        qa = f.type == 'Distributed Force' ? f.valA : 0,
+        qb = f.type == 'Distributed Force' ? f.valB : 0,
+        qk = f.type == 'Distributed Force' ? (qb - qa) / (f.locB - f.locA) : 0,
+        ma = f.type == 'Distributed Moment' ? -f.valA : 0,
+        mb = f.type == 'Distributed Moment' ? -f.valA : 0,
+        mk = f.type == 'Distributed Force' ? -(mb - ma) / (f.locB - f.locA) : 0,
         q = f.type == 'Force' ? f.valA : Object.prototype.hasOwnProperty.call(f, 'rF') ? f.rF : 0,
         m = f.type == 'Moment' ? -f.valA : Object.prototype.hasOwnProperty.call(f, 'rM') ? -f.rM : 0,
         x0 = 0,
@@ -368,34 +310,34 @@ const integral = (beams, f, x, equation) => {
             v += t * (x1 - x0) + ei * (
                 m * (x1 - x0) ** 2 / 2 +
                 q * (x1 - x0) ** 3 / 6 +
-                ml * (x1 - x0) ** 3 / 6 + mk * (x1 - x0) ** 4 / 24 +
-                ql * (x1 - x0) ** 4 / 24 + qk * (x1 - x0) ** 5 / 120);
+                ma * (x1 - x0) ** 3 / 6 + mk * (x1 - x0) ** 4 / 24 +
+                qa * (x1 - x0) ** 4 / 24 + qk * (x1 - x0) ** 5 / 120);
             t += ei * (
                 m * (x1 - x0) +
                 q * (x1 - x0) ** 2 / 2 +
-                ml * (x1 - x0) ** 2 / 2 + mk * (x1 - x0) ** 3 / 6 +
-                ql * (x1 - x0) ** 3 / 6 + qk * (x1 - x0) ** 4 / 24);
+                ma * (x1 - x0) ** 2 / 2 + mk * (x1 - x0) ** 3 / 6 +
+                qa * (x1 - x0) ** 3 / 6 + qk * (x1 - x0) ** 4 / 24);
 
             m += q * (x1 - x0) +
-                ml * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
-                ql * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
+                ma * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
+                qa * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
+
+            q += qa * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
 
             if (f.locB < x1) {
                 if (f.locB > x0)
                     x0 = f.locB;
 
                 v -= ei * (
-                    ml * (x1 - x0) ** 3 / 6 + mk * (x1 - x0) ** 4 / 24 +
-                    ql * (x1 - x0) ** 4 / 24 + qk * (x1 - x0) ** 5 / 120);
+                    mb * (x1 - x0) ** 3 / 6 + mk * (x1 - x0) ** 4 / 24 +
+                    qb * (x1 - x0) ** 4 / 24 + qk * (x1 - x0) ** 5 / 120);
                 t -= ei * (
-                    ml * (x1 - x0) ** 2 / 2 + mk * (x1 - x0) ** 3 / 6 +
-                    ql * (x1 - x0) ** 3 / 6 + qk * (x1 - x0) ** 4 / 24);
-                q -= ql * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
-                m -= ml * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
-                    ql * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
+                    mb * (x1 - x0) ** 2 / 2 + mk * (x1 - x0) ** 3 / 6 +
+                    qb * (x1 - x0) ** 3 / 6 + qk * (x1 - x0) ** 4 / 24);
+                q -= qb * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
+                m -= mb * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
+                    qb * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
             }
-
-            q += ql * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
 
             if (x === x1)
                 break;

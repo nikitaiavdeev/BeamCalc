@@ -79,7 +79,7 @@
             </defs>
 
             <g>
-              <g class='beam' v-for="(beam, index) in beams" :key="'beam' + index" @click="editBeam(beam)" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
+              <g class='beam' v-for="(beam, index) in beams" :key="'beam' + index" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editBeam(beam)">
                 <polygon :points="beam.polygonFill"/>
                 <path :d="beam.path"/>
                 <tooltip>
