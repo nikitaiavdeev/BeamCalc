@@ -6,29 +6,29 @@
     </marker>
     <g id="pos-force">
       <path d="M-5,10L0,0L5,10z" stroke="none" />
-      <path :d="'M0,10V' + ( getVH - 10 )" stroke-width="2" />
+      <path :d="'M0,10v' + ( getVH - 10 )" stroke-width="2" />
     </g>
     <g id="neg-force">
       <path d="M-5,-10L0,0L5,-10z" stroke="none" />
-      <path :d="'M0,-10V' + ( -getVH + 10 )" stroke-width="2" />
+      <path :d="'M0,-10v' + ( -getVH + 10 )" stroke-width="2" />
     </g>
     <g id="pos-dis-force">
       <path d="M-5,10L0,0L5,10z" stroke="none" />
-      <path :d="'M0,10V' + ( getVH*0.75 - 10 )" stroke-width="2" />
+      <path :d="'M0,10v' + ( getVH*0.75 - 10 )" stroke-width="2" />
     </g>
     <g id="neg-dis-force">
       <path d="M-5,-10L0,0L5,-10z" stroke="none" />
-      <path :d="'M0,-10V' + ( -getVH*0.75 + 10 )" stroke-width="2" />
+      <path :d="'M0,-10v' + ( -getVH*0.75 + 10 )" stroke-width="2" />
     </g>
     <g id="pos-dis-moment">
       <path d="M-5,10L0,0L5,10z" stroke="none" />
       <path d="M-5,20L0,10L5,20z" stroke="none" />
-      <path :d="'M0,10V' + ( getVH*0.75 - 10 )" stroke-width="2" />
+      <path :d="'M0,10v' + ( getVH*0.75 - 10 )" stroke-width="2" />
     </g>
     <g id="neg-dis-moment">
       <path d="M-5,-10L0,0L5,-10z" stroke="none" />
       <path d="M-5,-20L0,-10L5,-20z" stroke="none" />
-      <path :d="'M0,-10V' + ( -getVH*0.75 + 10 )" stroke-width="2" />
+      <path :d="'M0,-10v' + ( -getVH*0.75 + 10 )" stroke-width="2" />
     </g>
     <g id="pos-moment">
       <path d="M-5,0L0,-10L5,0z" stroke="none"
@@ -74,12 +74,12 @@
       <path d="M 2,10 v 2 L10,20 v -2 Z" stroke-width="0" />
     </g>
     <g id="linSpring">
-      <polyline points="0,-2 0,3 -12,8 12,13 0,18 0,23" style="fill:none;stroke-width:2;stroke-linejoin:bevel" />
-      <path d="M -12,23 H 12" stroke-width="2" />
-      <path d="M -8,24 H -6 L-10,29 H -12 Z" stroke-width="0" />
-      <path d="M -2,24 H 0 L -4,29 H -6 Z" stroke-width="0" />
-      <path d="M 4,24 H 6 L 2,29 H 0 Z" stroke-width="0" />
-      <path d="M 10,24 H 12 L 8,29 H 6 Z" stroke-width="0" />
+      <polyline points="0,0 0,5 -12,10 12,15 0,20 0,25" style="fill:none;stroke-width:2;stroke-linejoin:bevel" />
+      <path d="M -12,25 H 12" stroke-width="2" />
+      <path d="M -8,26 H -6 L-10,31 H -12 Z" stroke-width="0" />
+      <path d="M -2,26 H 0 L -4,31 H -6 Z" stroke-width="0" />
+      <path d="M 4,26 H 6 L 2,31 H 0 Z" stroke-width="0" />
+      <path d="M 10,26 H 12 L 8,31 H 6 Z" stroke-width="0" />
     </g>
     <g id="torSpring">
       <path

@@ -386,6 +386,8 @@ const integral = (beams, f, x, equation) => {
 
             q += qa * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
 
+            qa += qk * (x1 - x0);
+            ma += mk * (x1 - x0);
             if (f.locB < x1) {
                 if (f.locB > x0)
                     x0 = f.locB;
@@ -399,6 +401,8 @@ const integral = (beams, f, x, equation) => {
                 q -= qb * (x1 - x0) + qk * (x1 - x0) ** 2 / 2;
                 m -= mb * (x1 - x0) + mk * (x1 - x0) ** 2 / 2 +
                     qb * (x1 - x0) ** 2 / 2 + qk * (x1 - x0) ** 3 / 6;
+                qb += qk * (x1 - x0);
+                mb += mk * (x1 - x0);
             }
 
             if (x === x1)

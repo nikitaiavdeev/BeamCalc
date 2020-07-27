@@ -161,23 +161,23 @@
       ruleLocA(v) {
         if (v === '') return 'Required';
         if (isNaN(v)) return 'Should be a number';
-        if (v < 0) return "Location shouldn't be less than zero";
-        if (v > this.beamL) return "Location shouldn't be greater than beam total length";
-        if ((this.dialog.item.locB) && (v > this.dialog.item.locB)) return "Start location should be less than end location";
+        if (parseFloat(v) < 0) return "Location shouldn't be less than zero";
+        if (parseFloat(v) > this.beamL) return "Location shouldn't be greater than beam total length";
+        if ((this.dialog.item.locB) && (parseFloat(v) > parseFloat( this.dialog.item.locB ))) return "Start location should be less than end location";
         return true
       },
 
       ruleLocB(v) {
         if (v === '') return 'Required';
         if (isNaN(v)) return 'Should be a number';
-        if (v < 0) return "Location shouldn't be less than zero";
-        if (v > this.beamL) return "Location shouldn't be greater than beam total length";
-        if (v < this.dialog.item.locA) return "End location should be grater than start location";
+        if (parseFloat(v) < 0) return "Location shouldn't be less than zero";
+        if (parseFloat(v) > this.beamL) return "Location shouldn't be greater than beam total length";
+        if (parseFloat(v) < parseFloat( this.dialog.item.locA )) return "End location should be grater than start location";
         return true
       },
 
       ruleValN0(v) {
-        if (v === 0) return "Value shouldn't be equal to zero";
+        if (parseFloat(v) === 0) return "Value shouldn't be equal to zero";
         if (v === '') return 'Required';
         if (isNaN(v)) return 'Should be a number';
         return true
@@ -238,8 +238,12 @@
             this.dialog.items.sort((a, b) => (a.locA > b.locA) ? 1 : -1);
         }
 
-        if (this.dialog.type === 'Beam')
-          this.beamL = this.beams.reduce((a,b) => parseFloat(a.length) + parseFloat(b.length));
+        if (this.dialog.type === 'Beam'){
+          this.beamL = 0;
+          this.beams.forEach(b => {
+            this.beamL += parseFloat(b.length);
+          });
+        }
 
         this.close();
       },

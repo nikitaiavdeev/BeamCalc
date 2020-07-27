@@ -7,7 +7,7 @@ export const
   MARGIN_X = 60,
   MARGIN_Y = 15,
   BEAM_HEIGHT = 5,
-  VECTOR_HEIGHT = 90,
+  VECTOR_HEIGHT = 80,
   MOMENT_HEIGHT = 0.10,
   GRAPH_STEPS = 6,
   GRAPH_HEIGHT = 250,
@@ -95,16 +95,16 @@ export default new Vuex.Store({
     getTextY : () => (y, scale, y1 = null) => {
       if (y == 0){
         scale = 0;
-        return GRAPH_HEIGHT * 0.5  + Math.sign(y1)* BEAM_HEIGHT + (y1 > 0 ? VECTOR_HEIGHT*scale + 2*TICK_L :  - VECTOR_HEIGHT*scale -TICK_L);
+        return GRAPH_HEIGHT * 0.5  + Math.sign(y1)* BEAM_HEIGHT + (y1 > 0 ? VECTOR_HEIGHT*scale + 2.5*TICK_L :  - VECTOR_HEIGHT*scale -TICK_L);
       } else {
-        return GRAPH_HEIGHT * 0.5  + Math.sign(y)* BEAM_HEIGHT + (y > 0 ? VECTOR_HEIGHT*scale + 2*TICK_L :  - VECTOR_HEIGHT*scale -TICK_L);
+        return GRAPH_HEIGHT * 0.5  + Math.sign(y)* BEAM_HEIGHT + (y > 0 ? VECTOR_HEIGHT*scale + 2.5*TICK_L :  - VECTOR_HEIGHT*scale -TICK_L);
       }      
     },
     getGaphY : () => (y, graph) => {
       const scaleY = (GRAPH_HEIGHT - 5 * MARGIN_Y) / (graph.min - graph.max);
       return y * scaleY + (GRAPH_HEIGHT - scaleY * (graph.max + graph.min)) / 2;
     },
-    getPath : (_state, getters) => (name, i = null) => {
+    getPath : (_state, getters) => (name, i = null, g = null) => {
       switch (name) {
         case 'beam polygon':
           return  getters.getBeamX(i) + ',' + getters.getBeamY(-1) + ' ' + 
@@ -118,9 +118,14 @@ export default new Vuex.Store({
                   'L' + getters.getBeamX(i+1) + ',' + getters.getBeamY(1);
         case 'distributed polygon':
           return  getters.getX(i.locA) + ',' + getters.getY( 0 ) + ' ' +
-                  getters.getX(i.locA) + ',' + getters.getY( Math.sign(i.valA) * (VECTOR_HEIGHT*0.75 - BEAM_HEIGHT)) + ' ' +
-                  getters.getX(i.locB) + ',' + getters.getY( Math.sign(i.valB) * (VECTOR_HEIGHT*0.75 - BEAM_HEIGHT) ) + ' ' +
+                  getters.getX(i.locA) + ',' + getters.getY( Math.sign(i.valA) * (VECTOR_HEIGHT*0.75 + BEAM_HEIGHT) ) + ' ' +
+                  getters.getX(i.locB) + ',' + getters.getY( Math.sign(i.valB) * (VECTOR_HEIGHT*0.75 + BEAM_HEIGHT) ) + ' ' +
                   getters.getX(i.locB) + ',' + getters.getY( 0 )
+        case 'distributed polygon graph':
+          return  getters.getX(i.locA) + ',' + getters.getGaphY( 0, g ) + ' ' +
+                  getters.getX(i.locA) + ',' + ( getters.getGaphY( 0, g ) + Math.sign(i.valA) * (VECTOR_HEIGHT*0.75) ) + ' ' +
+                  getters.getX(i.locB) + ',' + ( getters.getGaphY( 0, g ) + Math.sign(i.valB) * (VECTOR_HEIGHT*0.75) ) + ' ' +
+                  getters.getX(i.locB) + ',' + getters.getGaphY( 0, g )
       }
     },
     getTransform : state => graph => {

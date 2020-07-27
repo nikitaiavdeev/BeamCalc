@@ -6,7 +6,7 @@
 
         <!-- Graph -->
         <g :transform="getTransform(graph)">
-          <path :d="getPath(graph)" vector-effect="non-scaling-stroke"/>  
+          <path :d="getGraphPath(graph)" vector-effect="non-scaling-stroke"/>  
         </g>
         <!-- Graph -->
 
@@ -75,12 +75,12 @@
             <g v-if="f.type === 'Distributed Force'" class="distrForce">
               <use :xlink:href="f.valA > 0 ? '#pos-dis-force' : '#neg-dis-force'" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
               <use :xlink:href="f.valB > 0 ? '#pos-dis-force' : '#neg-dis-force'" :x="getX(f.locB)" :y="getGaphY(0, graph)" />
-              <polygon :points="getPath('distributed polygon', f)"></polygon>
+              <polygon :points="getPath('distributed polygon graph', f, graph)"></polygon>
             </g>
             <g v-if="f.type === 'Distributed Moment'" class="distrMoment">
               <use :xlink:href="f.valA > 0 ? '#pos-dis-moment' : '#neg-dis-moment'" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
               <use :xlink:href="f.valB > 0 ? '#pos-dis-moment' : '#neg-dis-moment'" :x="getX(f.locB)" :y="getGaphY(0, graph)" />
-              <polygon :points="getPath('distributed polygon', f)"></polygon>
+              <polygon :points="getPath('distributed polygon graph', f, graph)"></polygon>
             </g>
             <g v-if="f.type === 'Force'" class="force">
               <use :xlink:href="f.valA >= 0 ? '#pos-force' : '#neg-force'" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
@@ -168,13 +168,13 @@
           case 'mCanvas':
             return 'Moment, (lb-in)';
           case 'vCanvas':
-            return 'Deflection × 10³, (in)';
+            return 'Deflection, (in)';
           default:
             return null;
         }
       },
       ...mapMutations(['updateQMVGraphs']),
-      ...mapGetters(['getX', 'getY', 'getGaphY', 'getTransform', 'getGH', 'getGS', 'getTL', 'getMX']),
+      ...mapGetters(['getX', 'getY', 'getGaphY', 'getTransform', 'getPath', 'getGH', 'getGS', 'getTL', 'getMX']),
       ...mapState({
         supports: state => state.analysis.supports,
         loads: state => state.analysis.loads,
@@ -191,7 +191,7 @@
     },
 
     methods: {
-      getPath: (graph) => {
+      getGraphPath: (graph) => {
         return 'M' + graph.arr.join('L');
       },
 
