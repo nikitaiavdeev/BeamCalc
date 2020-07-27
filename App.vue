@@ -2,49 +2,62 @@
   <v-app id="inspire">
     <Snackbar />
     <Header />
-    <v-content>
+    <v-main>
       <v-container fluid>
         <v-row dense>
-          <v-col cols="12" sm="12" md="5">
-            <v-row>
-              <v-col>
-                <BeamTable />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <SupportTable />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <LoadTable />
-              </v-col>
-            </v-row>
+          <v-col v-if="!hideTables" cols="12" sm="12" md="5">
+            <Tables />
           </v-col>
 
-          <v-col cols="12" sm="12" md="7">
-            <v-row dense>
+          <v-col cols="12" sm="12" :md="hideTables ? 12 : 7">
+            <v-row>
               <v-col>
-                <BeamCanvas />
+                <BeamCanvas title = "Beam" />
               </v-col>
             </v-row>
 
             <v-row v-if="solved" dense>
               <v-col>
-                <FreeBodyCanvas />
+                <BeamCanvas title = "Free Body" />
               </v-col>
             </v-row>
 
             <v-row v-if="solved" dense>
               <v-col>
-                <QMVCanvas />
+                  <v-card outlined>
+                    <v-card-title>
+                      <v-row>
+                        <v-col>
+                          <v-card-title dense>QMV Diagrams</v-card-title>
+                        </v-col>
+                        <v-col>
+                          <v-switch v-model="showAxis" label="Axis"></v-switch>
+                        </v-col>
+                        <v-col>
+                          <v-switch v-model="showLoads" label="Loads"></v-switch>
+                        </v-col>
+                        <v-col>
+                          <v-switch v-model="showBCs" label="BCs"></v-switch>
+                        </v-col>
+                        <v-col>
+                          <v-switch v-model="showMaxMin" label="Max/Min"></v-switch>
+                        </v-col>
+                      </v-row>
+                    </v-card-title>
+                  
+                    <v-card-text>
+
+                      <QMVCanvas graphID = "qCanvas" />
+                      <QMVCanvas graphID = "mCanvas" />
+                      <QMVCanvas graphID = "vCanvas" />
+                    </v-card-text>
+                  </v-card>
               </v-col>
             </v-row>
           </v-col>
         </v-row>
       </v-container>
-    </v-content>
+    </v-main>
 
     <Dialog />
   </v-app>
@@ -54,32 +67,50 @@
   import Snackbar from './components/Snackbar'
   import Header from './components/Header'
   import BeamCanvas from './components/BeamCanvas'
-  import FreeBodyCanvas from './components/FreeBodyCanvas'
   import QMVCanvas from './components/QMVCanvas'
-  import LoadTable from './components/LoadTable'
-  import SupportTable from './components/SupportTable'
-  import BeamTable from './components/BeamTable'
+  import Tables from './components/Tables'
   import Dialog from './components/Dialog'
-
+  import { mapFields } from 'vuex-map-fields'
   import { mapState  } from 'vuex'
 
   export default {
     computed:{
       ...mapState({
-        solved: state => state.analysis.solved
+        solved: state => state.analysis.solved,
+        hideTables: state => state.hideTables
       }),
+      ...mapFields({
+        showAxis: 'analysis.solution.showAxis',
+        showLoads: 'analysis.solution.showLoads',
+        showBCs: 'analysis.solution.showBCs',
+        showMaxMin: 'analysis.solution.showMaxMin',
+      })
     },
 
     components: {
       Snackbar,
       Header,
-      BeamTable,
-      LoadTable,
-      SupportTable,
+      Tables,
       BeamCanvas,
-      FreeBodyCanvas,
       QMVCanvas,
       Dialog
+    },
+
+    mounted: function() {
+      this.$nextTick(() => {
+        window.addEventListener('resize', this.onResize);
+        window.dispatchEvent(new Event('resize'));
+      })
+    },
+
+    methods: {
+      onResize() {
+        this.$store.commit('onResize');
+      }
+    },
+    
+    beforeDestroy: function() { 
+      window.removeEventListener('resize', this.onResize); 
     },
 
     metaInfo: {

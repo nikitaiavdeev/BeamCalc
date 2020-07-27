@@ -4,9 +4,13 @@ import store from './store/store'
 import VueMeta from 'vue-meta';
 import App from './App.vue'
 import vuetify from './plugins/vuetify';
+import VueGtag from "vue-gtag";
 
 Vue.config.productionTip = false
 Vue.use(VueMeta);
+Vue.use(VueGtag, {
+  config: { id: "UA-169054486-1" }
+});
 
 new Vue({
   store,

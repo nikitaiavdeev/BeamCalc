@@ -1,7 +1,6 @@
 import {
-    drawForces,
-    updateQMVGraphs
-} from '../store/drawHelper.js';
+  GRAPH_STEPS,
+} from '../store/store.js'
 
 const math = require('mathjs');
 
@@ -97,7 +96,8 @@ const solve = (state) => {
         arrQ = [],
         arrM = [],
         arrV = [],
-        maxQ, minQ, maxM, minM, maxV, minV;
+        maxQ, minQ, maxM, minM, maxV, minV,
+        maxQx, minQx, maxMx, minMx, maxVx, minVx;
 
     do {
         q = 0;
@@ -155,18 +155,48 @@ const solve = (state) => {
             }
         });
 
-        if ((q > maxQ) || (x === 0)) maxQ = q;
-        if ((q < minQ) || (x === 0)) minQ = q;
-        if (q + dq > maxQ) maxQ = q + dq;
-        if (q + dq < minQ) minQ = q + dq;
+        if ((q > maxQ) || (x === 0)){ 
+          maxQ = q;
+          maxQx = x;
+        }
+        if ((q < minQ) || (x === 0)){
+          minQ = q;
+          minQx = x;
+        } 
+        if (q + dq > maxQ){
+          maxQ = q + dq;
+          maxQx = x;
+        }
+        if (q + dq < minQ){
+          minQ = q + dq;
+          minQx = x;
+        }
 
-        if ((m > maxM) || (x === 0)) maxM = m;
-        if ((m < minM) || (x === 0)) minM = m;
-        if (m + dm > maxM) maxM = m + dm;
-        if (m + dm < minM) minM = m + dm;
+        if ((m > maxM) || (x === 0)){ 
+          maxM = m;
+          maxMx = x;
+        }
+        if ((m < minM) || (x === 0)){ 
+          minM = m;
+          minMx = x;
+        }
+        if (m + dm > maxM){
+          maxM = m + dm;
+          maxMx = x;
+        }
+        if (m + dm < minM){
+          minM = m + dm;
+          minMx = x;
+        }
 
-        if ((v > maxV) || (x === 0)) maxV = v;
-        if ((v < minV) || (x === 0)) minV = v;
+        if ((v > maxV) || (x === 0)){
+          maxV = v;
+          maxVx = x;
+        }
+        if ((v < minV) || (x === 0)){ 
+          minV = v;
+          minVx = x;
+        }
 
         arrQ.push([x, q]);
         if (dq != 0) arrQ.push([x, q + dq]);
@@ -178,29 +208,61 @@ const solve = (state) => {
         x += (x + dx <= beamL) ? dx : beamL - x;
     } while (x <= beamL);
 
+    const 
+      stepQ = graphRound(Math.abs(maxQ - minQ) / GRAPH_STEPS),
+      stepM = graphRound(Math.abs(maxM - minM) / GRAPH_STEPS),
+      stepV = graphRound(Math.abs(maxV - minV) / GRAPH_STEPS),
+      midQ = stepQ * Math.round((maxQ + minQ) / stepQ) / 2,
+      midM = stepM * Math.round((maxM + minM) / stepM) / 2,
+      midV = stepV * Math.round((maxV + minV) / stepV) / 2;
+
     Object.assign(state.analysis.solution, {
         graphQ: {
             'arr': arrQ,
-            'pathMax': maxQ,
-            'pathMin': minQ,
+            'pathMax': {
+              'x' : maxQx,
+              'y' : maxQ,
+            },
+            'pathMin': {
+              'x' : minQx,
+              'y' : minQ,
+            },
+            'step': stepQ,
+            'min': midQ - stepQ * (GRAPH_STEPS / 2 + 0.5),
+            'max': midQ + stepQ * (GRAPH_STEPS / 2 + 0.5)
         },
         graphM: {
             'arr': arrM,
-            'pathMax': maxM,
-            'pathMin': minM,
-        },
+            'pathMax': {
+              'x' : maxMx,
+              'y' : maxM,
+            },
+            'pathMin': {
+              'x' : minMx,
+              'y' : minM,
+            },
+            'step': stepM,
+            'min': midM - stepM * (GRAPH_STEPS / 2 + 0.5),
+            'max': midM + stepM * (GRAPH_STEPS / 2 + 0.5)        },
         graphV: {
             'arr': arrV,
-            'pathMax': maxV,
-            'pathMin': minV,
+            'pathMax': {
+              'x' : maxVx,
+              'y' : maxV,
+            },
+            'pathMin': {
+              'x' : minVx,
+              'y' : minV,
+            },
+            'step': stepV,
+            'min': midV - stepV * (GRAPH_STEPS / 2 + 0.5),
+            'max': midV + stepV * (GRAPH_STEPS / 2 + 0.5)
         }
     });
 
-    updateQMVGraphs(state);
     Object.assign(state.analysis, {
         solved: true
     });
-    drawForces(state);
 }
 
 const bcEq0 = (arr, ans, n, state, inp, bc) => {
@@ -356,6 +418,29 @@ const integral = (beams, f, x, equation) => {
     else
         return [q, m, t, v];
 }
+
+const graphRound = (n) => {
+  const p = Math.floor(Math.log10(n));
+  let s = n.toString();
+  if (p < 0) {
+    s = (n * 10 ** (-p)).toString();
+  }
+  let f = parseFloat(s[0]);
+
+  if (s.length > 1) {
+    let ff = s[1] === '.' ? parseFloat(s[2]) : parseFloat(s[1]);
+    if (ff < 2.5) {
+      f += 0.5;
+    } else if (ff < 7.5) {
+      f++;
+    } else {
+      f += 1.5;
+    }
+  } else {
+    f += 0.5;
+  }
+  return f * 10 ** p;
+};
 
 export {
     solve

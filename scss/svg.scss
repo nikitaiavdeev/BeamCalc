@@ -38,7 +38,11 @@ $toolTip:#616161;
 #mCanvas,
 #vCanvas {
     fill: none;
-    stroke-width: 2px;
+    stroke-width: 1px;
+
+    .beam {
+        stroke-width: 2px;
+    }
 
     .axis {
         marker-end: url("#arrow-axis");
@@ -55,7 +59,8 @@ $toolTip:#616161;
     }
 
     .xAxisTitle,
-    .xAxisText {
+    .xAxisText,
+    .textMaxMin {
         text-anchor: middle;
         stroke: none;
         fill: $support-fill;
@@ -65,6 +70,16 @@ $toolTip:#616161;
         text-anchor: end;
         stroke: none;
         fill: $support-fill;
+    }
+
+    .support,
+    .fix,
+    .slide,
+    .linSpring,
+    .torSpring {
+        cursor: pointer;
+        fill: $support-fill;
+        stroke: $support-fill;
     }
 }
 
@@ -99,165 +114,126 @@ $toolTip:#616161;
         }
     }
 
-    .distrForce {
-        cursor: pointer;
-        stroke: $distrForce-stroke;
-        fill: $distrForce-fill;
-        fill-opacity: 0.2;
-
-        &:hover {
-            stroke: $distrForce-hover;
-            fill: $distrForce-hover;
-            stroke-opacity: 0.7;
-
-            polyline {
-                marker-start: url("#arrow-distrForce-hover");
-                marker-end: url("#arrow-distrForce-hover");
-            }
-
-            text {
-                fill: $distrForce-hover;
-                fill-opacity: 0.7;
-            }
-        }
-
-        text {
-            fill: $distrForce-stroke;
-            fill-opacity: 1;
-        }
-
-        polyline {
-            stroke-width: 2px;
-            marker-start: url("#arrow-distrForce");
-            marker-end: url("#arrow-distrForce");
-        }
-    }
-
-    .distrMoment {
-        cursor: pointer;
-        stroke: $distrMoment-stroke;
-        fill: $distrMoment-fill;
-        fill-opacity: 0.2;
-
-        &:hover {
-            stroke: $distrMoment-hover;
-            fill: $distrMoment-hover;
-            stroke-opacity: 0.7;
-
-            polyline {
-                marker-start: url("#arrow-distrMoment-hover");
-                marker-end: url("#arrow-distrMoment-hover");
-            }
-
-            text {
-                fill: $distrMoment-hover;
-                fill-opacity: 0.7;
-            }
-        }
-
-        text {
-            fill: $distrMoment-stroke;
-            fill-opacity: 1;
-        }
-
-        polyline {
-            stroke-width: 2px;
-            marker-start: url("#arrow-distrMoment");
-            marker-end: url("#arrow-distrMoment");
-        }
-    }
-
-    .force {
-        cursor: pointer;
-        stroke: $force-stroke;
-        fill: $force-stroke;
-        fill-opacity: 1;
-
-        &:hover {
-            stroke: $force-hover;
-            stroke-opacity: 0.7;
-            fill: $force-hover;
-            fill-opacity: 0.7;
-
-            polyline {
-                marker-start: url("#arrow-force-hover");
-            }
-        }
-
-        polyline {
-            stroke-width: 2px;
-            marker-start: url("#arrow-force");
-        }
-    }
-
-    .moment {
-        cursor: pointer;
-        stroke: $moment-stroke;
-        fill: $moment-stroke;
-
-        &:hover {
-            stroke: $moment-hover;
-            stroke-opacity: 0.7;
-            fill: $moment-hover;
-            fill-opacity: 0.7;
-
-            path {
-                marker-start: url("#arrow-moment-hover");
-            }
-        }
-
-        path {
-            fill: none;
-            stroke-width: 2px;
-            marker-start: url("#arrow-moment");
-        }
-    }
-
-    .support,
-    .fix,
-    .slide,
-    .linSpring,
-    .torSpring {
-        cursor: pointer;
-        fill: $support-fill;
-        stroke: $support-fill;
-
-        &:hover {
-            fill: $support-fill-hover;
-            stroke: $support-fill-hover;
-        }
-    }
-
     .reaction {
         cursor: pointer;
         stroke: $support-fill;
         fill: $support-fill;
+        stroke-width: 2px;
 
         &:hover {
             stroke: $support-fill-hover;
             stroke-opacity: 0.7;
             fill: $support-fill-hover;
             fill-opacity: 0.7;
-
-            polyline {
-                marker-start: url("#arrow-reactionF-hover");
-            }
-
-            path {
-                marker-start: url("#arrow-reactionM-hover");
-            }
         }
+    }
+}
 
-        path {
-            fill: none;
-            stroke-width: 2px;
-            marker-start: url("#arrow-reactionM");
-        }
+.distrForce,
+.distrMoment {
+    cursor: pointer;
+    fill-opacity: 1;
 
-        polyline {
-            stroke-width: 2px;
-            marker-start: url("#arrow-reactionF");
+    polygon {
+        fill-opacity: 0.2;
+    }
+
+    &:hover {
+        stroke-opacity: 0.7;
+
+        text {
+            fill-opacity: 0.7;
         }
+    }
+}
+
+.distrForce {
+    stroke: $distrForce-stroke;
+    fill: $distrForce-stroke;
+
+    path {
+        fill: $distrForce-stroke;
+    }
+
+    text {
+        fill: $distrForce-stroke;
+    }
+
+    &:hover {
+        stroke: $distrForce-hover;
+        fill: $distrForce-hover;
+
+        text {
+            fill: $distrForce-hover;
+        }
+    }
+}
+
+.distrMoment {
+    stroke: $distrMoment-stroke;
+    fill: $distrMoment-stroke;
+
+    path {
+        fill: $distrForce-stroke;
+    }
+
+    text {
+        fill: $distrMoment-stroke;
+    }
+
+    &:hover {
+        stroke: $distrMoment-hover;
+        fill: $distrMoment-hover;
+
+        text {
+            fill: $distrMoment-hover;
+        }
+    }
+}
+
+.force,
+.moment {
+    cursor: pointer;
+    fill-opacity: 1;
+
+    &:hover {
+        stroke-opacity: 0.7;
+        fill-opacity: 0.7;
+    }
+}
+
+.force {
+    stroke: $force-stroke;
+    fill: $force-stroke;
+
+    &:hover {
+        stroke: $force-hover;
+        fill: $force-hover;
+    }
+}
+
+.moment {
+    stroke: $moment-stroke;
+    fill: $moment-stroke;
+
+    &:hover {
+        stroke: $moment-hover;
+        fill: $moment-hover;
+    }
+}
+
+.support,
+.fix,
+.slide,
+.linSpring,
+.torSpring {
+    cursor: pointer;
+    fill: $support-fill;
+    stroke: $support-fill;
+
+    &:hover {
+        fill: $support-fill-hover;
+        stroke: $support-fill-hover;
     }
 }
 
@@ -296,48 +272,4 @@ $toolTip:#616161;
 
         top: -8px;
     }
-}
-
-/* makers */
-#arrow-distrForce {
-    fill: $distrForce-stroke;
-}
-
-#arrow-distrForce-hover {
-    fill: $distrForce-hover;
-}
-
-#arrow-distrMoment {
-    fill: $distrMoment-stroke;
-}
-
-#arrow-distrMoment-hover {
-    fill: $distrMoment-hover;
-}
-
-#arrow-force {
-    fill: $force-stroke;
-}
-
-#arrow-force-hover {
-    fill: $force-hover;
-}
-
-#arrow-moment {
-    fill: $moment-stroke;
-}
-
-#arrow-moment-hover {
-    fill: $moment-hover;
-}
-
-#arrow-reactionF,
-#arrow-reactionM,
-#arrow-axis {
-    fill: $support-fill;
-}
-
-#arrow-reactionF-hover,
-#arrow-reactionM-hover {
-    fill: $support-fill-hover;
 }

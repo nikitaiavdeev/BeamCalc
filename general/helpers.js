@@ -7,7 +7,7 @@ const formatNumer = (inp) => {
     } else if (vAbs === 0) {
         return 0;
     } else if (vAbs < 0.001) {
-        return v.toExponential(3);
+        return v.toExponential(2);
     } else if (vAbs < 1) {
         return parseFloat(v.toFixed(4));
     } else if (vAbs < 10) {
