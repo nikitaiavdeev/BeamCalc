@@ -10,7 +10,7 @@
           <v-container v-if="dialog.type === 'Beam'">
             <v-row>
               <v-col cols="12" sm="4" md="4">
-                <v-text-field v-model="dialog.item.length" label="Beam lenght" suffix="in" :rules="[ruleValN0]"
+                <v-text-field v-model="dialog.item.length" label="Beam length" suffix="in" :rules="[ruleValN0]"
                   required></v-text-field>
               </v-col>
               <v-col cols="12" sm="4" md="4">

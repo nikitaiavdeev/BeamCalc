@@ -1,10 +1,39 @@
 <template>
   <v-card outlined>
-    <v-card-title dense>{{title}}</v-card-title>
+    <v-card-title dense>
+      {{title}}
+      <v-btn v-if="title == 'Beam'" color="primary" fab small dark absolute top right @click="expandCanvas">
+        <v-icon v-if="!hideTables">mdi-arrow-expand-all</v-icon>
+        <v-icon v-if="hideTables">mdi-arrow-collapse-all</v-icon>
+      </v-btn>
+      <v-spacer></v-spacer>
+      <svg class="sign" width="110px" height="30px" xmlns="http://www.w3.org/2000/svg">
+        <g class="force">
+          <path d="M20,20L25,30L30,20z" stroke="none" />
+          <path d="M25,20v-20" stroke-width="2" />
+        </g>
+        <g class="moment">
+          <path d="M 10,0L20,5L10,10z" stroke="none" />
+          <path d="M 15 5 A 10 10 1 1 0 15 25" stroke-width="2" fill="none" />
+        </g>
+        <text x="10" y="15" dy="0.30em" font-size="1.5em">-</text>
+
+        <g class="force">
+          <path d="M40,10L45,0L50,10z" stroke="none" />
+          <path d="M45,10v20" stroke-width="2" />
+        </g>
+        <g class="moment">
+          <path d="M60,0L50,5L60,10z" stroke="none" />
+          <path d="M 55 5 A 10 10 0 0 1 55 25" stroke-width="2" fill="none" />
+        </g>
+        <text x="50" y="15" dy="0.30em">+</text>
+      </svg>
+    </v-card-title>
+    
     <v-card-text>
       <v-row dense>
         <v-col>
-          <svg id="canvas" width="100%" :height="getGH" :alt="screenUpdate">
+          <svg :id="'canvas' + title" width="100%" :height="getGH" :alt="screenUpdate" xmlns="http://www.w3.org/2000/svg">
             <SVGDefs />
 
             <!-- Beams -->
@@ -26,10 +55,10 @@
             <g>              
               <g v-for="(f, i) in loads" :key="f.type + i">
                 <g v-if="f.type === 'Distributed Force'" class="distrForce" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editLoad(f)">
-                  <use :xlink:href="f.valA > 0 ? '#pos-dis-force' : '#neg-dis-force'" :x="getX(f.locA)" :y="getBeamY( Math.sign(f.valA) )" />
+                  <use :xlink:href="getUseTag('Distributed Force A', f)" :x="getX(f.locA)" :y="getBeamY( Math.sign(f.valA) )" />
                   <text :x="getX(f.locA)" :y="getTextY(f.valA, 0.75, f.valB)">{{formatNum(f.valA)}} lb/in</text>
 
-                  <use :xlink:href="f.valB > 0 ? '#pos-dis-force' : '#neg-dis-force'" :x="getX(f.locB)" :y="getBeamY( Math.sign(f.valB) )" />
+                  <use :xlink:href="getUseTag('Distributed Force B', f)" :x="getX(f.locB)" :y="getBeamY( Math.sign(f.valB) )" />
                   <text :x="getX(f.locB)" :y="getTextY(f.valB, 0.75, f.valA)">{{formatNum(f.valB)}} lb/in</text>
 
                   <polygon :points="getPath('distributed polygon', f)"></polygon>
@@ -40,10 +69,10 @@
                   </tooltip>
                 </g>
                 <g v-if="f.type === 'Distributed Moment'" class="distrMoment" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel" @click="editLoad(f)">
-                  <use :xlink:href="f.valA > 0 ? '#pos-dis-moment' : '#neg-dis-moment'" :x="getX(f.locA)" :y="getBeamY(1)" />
+                  <use :xlink:href="getUseTag('Distributed Moment A', f)" :x="getX(f.locA)" :y="getBeamY( Math.sign(f.valA) )" />
                   <text :x="getX(f.locA)" :y="getTextY(f.valA, 0.75, f.valB)">{{formatNum(f.valA)}} lb-in/in</text>
 
-                  <use :xlink:href="f.valB > 0 ? '#pos-dis-moment' : '#neg-dis-moment'" :x="getX(f.locB)" :y="getBeamY(1)" />
+                  <use :xlink:href="getUseTag('Distributed Moment B', f)" :x="getX(f.locB)" :y="getBeamY( Math.sign(f.valB) )" />
                   <text :x="getX(f.locB)" :y="getTextY(f.valB, 0.75, f.valA)">{{formatNum(f.valB)}} lb-in/in</text>
 
                   <polygon :points="getPath('distributed polygon', f)"></polygon>
@@ -132,10 +161,6 @@
       </v-row>
     </v-card-text>
     <SVGToolTip :show='toolTipShow' :inner='toolTipInner' :locTop='toolTipTop' :locLeft='toolTipLeft'/>
-    <v-btn v-if="title == 'Beam'" color="primary" fab small dark absolute top right @click="expandCanvas">
-      <v-icon v-if="!hideTables">mdi-arrow-expand-all</v-icon>
-      <v-icon v-if="hideTables">mdi-arrow-collapse-all</v-icon>
-    </v-btn>
   </v-card>
 </template>
 
@@ -145,7 +170,6 @@
   import { formatNumer } from '../general/helpers.js'
   import SVGToolTip from './SVGToolTip'
   import SVGDefs from './SVGDefs'
-  import '../scss/svg.scss'
 
   let t;
 
@@ -170,7 +194,7 @@
       ...mapFields({
         hideTables: 'hideTables'
       }),
-      ...mapGetters(['getX', 'getY', 'getBeamY', 'getTextY', 'getGH', 'getPath']),
+      ...mapGetters(['getX', 'getY', 'getBeamY', 'getTextY', 'getGH', 'getPath', 'getUseTag']),
     },
 
     data: () => ({
@@ -210,7 +234,7 @@
       expandCanvas(){
         this.hideTables = !this.hideTables;
         window.dispatchEvent(new Event('resize'));
-      }
+      },
     }
   }
 </script>

@@ -5,6 +5,14 @@
     <v-main>
       <v-container fluid>
         <v-row dense>
+          <v-col>
+            <v-text-field v-model="title" label="Title">
+
+            </v-text-field>
+          </v-col>
+        </v-row>
+        
+        <v-row dense>
           <v-col v-if="!hideTables" cols="12" sm="12" md="5">
             <Tables />
           </v-col>
@@ -18,7 +26,7 @@
 
             <v-row v-if="solved" dense>
               <v-col>
-                <BeamCanvas title = "Free Body" />
+                <BeamCanvas title = "FreeBody" />
               </v-col>
             </v-row>
 
@@ -26,23 +34,34 @@
               <v-col>
                   <v-card outlined>
                     <v-card-title>
-                      <v-row>
-                        <v-col>
-                          <v-card-title dense>QMV Diagrams</v-card-title>
-                        </v-col>
-                        <v-col>
-                          <v-switch v-model="showAxis" label="Axis"></v-switch>
-                        </v-col>
-                        <v-col>
-                          <v-switch v-model="showLoads" label="Loads"></v-switch>
-                        </v-col>
-                        <v-col>
-                          <v-switch v-model="showBCs" label="BCs"></v-switch>
-                        </v-col>
-                        <v-col>
-                          <v-switch v-model="showMaxMin" label="Max/Min"></v-switch>
-                        </v-col>
-                      </v-row>
+                      <v-card-title>QMV Graphs</v-card-title>
+
+                      <v-menu bottom offset-x :close-on-content-click=false>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn icon v-on="on" v-bind="attrs">
+                            <v-icon>mdi-dots-vertical</v-icon>
+                          </v-btn>
+                        </template>
+
+                        <v-list dense>
+                          <v-list-item>
+                            <v-switch v-model="showAxis" label="Axis"></v-switch>
+                          </v-list-item>
+                          <v-list-item>
+                            <v-switch v-model="showLoads" label="Loads"></v-switch>                                
+                          </v-list-item>
+                          <v-list-item>
+                            <v-switch v-model="showBCs" label="BCs"></v-switch>
+                          </v-list-item>
+                          <v-list-item>
+                            <v-switch v-model="showMaxMin" label="Max/Min"></v-switch>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
+
+                      <v-spacer></v-spacer>
+
+                      <SVGSigns />
                     </v-card-title>
                   
                     <v-card-text>
@@ -68,10 +87,12 @@
   import Header from './components/Header'
   import BeamCanvas from './components/BeamCanvas'
   import QMVCanvas from './components/QMVCanvas'
+  import SVGSigns from './components/SVGSigns'
   import Tables from './components/Tables'
   import Dialog from './components/Dialog'
   import { mapFields } from 'vuex-map-fields'
   import { mapState  } from 'vuex'
+  import './scss/svg.scss'
 
   export default {
     computed:{
@@ -80,6 +101,7 @@
         hideTables: state => state.hideTables
       }),
       ...mapFields({
+        title: 'analysis.title',
         showAxis: 'analysis.solution.showAxis',
         showLoads: 'analysis.solution.showLoads',
         showBCs: 'analysis.solution.showBCs',
@@ -93,6 +115,7 @@
       Tables,
       BeamCanvas,
       QMVCanvas,
+      SVGSigns,
       Dialog
     },
 
@@ -112,18 +135,5 @@
     beforeDestroy: function() { 
       window.removeEventListener('resize', this.onResize); 
     },
-
-    metaInfo: {
-    title: 'Online free beam calculator',
-    titleTemplate: '%s',
-    htmlAttrs: {
-      reptilian: 'Online free beam calculator'
-    },
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'description', content: 'Online free beam calculator. Easily model shear, moment, and deflection, with unlimited supports, interactive diagrams, and instant results.' },
-      { name: 'title', content: 'Online free beam calculator' }
-    ]
-  },
   }
 </script>

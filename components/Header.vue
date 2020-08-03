@@ -19,7 +19,7 @@
       <v-btn text @click="$refs.fileUpload.click()">
         Open
       </v-btn>
-      <input v-show="false" ref="fileUpload" type="file" accept=".json" @input="openFile">
+      <input v-show="false" ref="fileUpload" type="file" accept=".bclc" @input="openFile">
 
       <v-divider
         inset
@@ -35,13 +35,17 @@
         vertical
       ></v-divider>
 
-      <v-btn text @click="solveBeam">
+      <v-btn v-if="!solved" solve text @click="solveBeam">
         Calculate
+      </v-btn>
+
+      <v-btn v-if="solved" solve text @click="saveResults">
+        Save results
       </v-btn>
     </v-toolbar-items>
 
     <v-spacer></v-spacer>
-    <v-toolbar-title>FreeBeam</v-toolbar-title>
+    <v-toolbar-title>BeamCalc</v-toolbar-title>
     <v-spacer></v-spacer>
 
     <span>{{ this.$store.state.appVersion }}</span>
@@ -52,7 +56,14 @@
 </template>
 
 <script>
-  export default {   
+  import { mapState } from 'vuex'
+
+  export default {
+    computed:{
+      ...mapState({
+        solved: state => state.analysis.solved,
+      })
+    }, 
     methods:{
       resetState() {
         this.$store.commit('resetState');
@@ -62,6 +73,9 @@
       },
       saveFile(){
         this.$store.commit('saveFile');
+      },
+      saveResults(){
+        this.$store.commit('saveResults');
       },
       openFile(e){
         let file = this.$refs.fileUpload.files[0];

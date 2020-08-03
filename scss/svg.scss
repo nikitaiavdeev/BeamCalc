@@ -16,210 +16,240 @@ $support-fill-hover: #90A4AE;
 $toolTip:#616161;
 
 .inputTable {
-    tr td:last-child {
-        width: 1%;
-        white-space: nowrap;
-    }
+  tr td:last-child {
+    width: 1%;
+    white-space: nowrap;
+  }
 }
 
 #qCanvas {
-    stroke: $force-stroke;
+  stroke: $force-stroke;
 }
 
 #mCanvas {
-    stroke: $moment-stroke;
+  stroke: $moment-stroke;
 }
 
 #vCanvas {
-    stroke: $beam-stroke;
+  stroke: $beam-stroke;
 }
 
 #qCanvas,
 #mCanvas,
 #vCanvas {
-    fill: none;
-    stroke-width: 1px;
+  fill: none;
+  stroke-width: 1px;
 
-    .beam {
-        stroke-width: 2px;
-    }
+  .beam {
+    stroke-width: 2px;
+  }
 
-    .axis {
-        marker-end: url("#arrow-axis");
-    }
+  .yAxis {
+    marker-end: url("#arrow-axisY");
+  }
 
-    line {
-        stroke: $support-fill;
-    }
+  .xAxis {
+    marker-end: url("#arrow-axisX");
+  }
 
-    .yAxisTitle {
-        text-anchor: start;
-        stroke: none;
-        fill: $support-fill;
-    }
+  line {
+    stroke: $support-fill;
+  }
 
-    .xAxisTitle,
-    .xAxisText,
-    .textMaxMin {
-        text-anchor: middle;
-        stroke: none;
-        fill: $support-fill;
-    }
+  .yAxisTitle {
+    text-anchor: start;
+    stroke: none;
+    fill: $support-fill;
+  }
 
-    .yAxisText {
-        text-anchor: end;
-        stroke: none;
-        fill: $support-fill;
-    }
+  .xAxisTitle,
+  .xAxisText,
+  .textMaxMin {
+    text-anchor: middle;
+    stroke: none;
+    fill: $support-fill;
+  }
 
-    .support,
-    .fix,
-    .slide,
-    .linSpring,
-    .torSpring {
-        cursor: pointer;
-        fill: $support-fill;
-        stroke: $support-fill;
-    }
-}
+  .yAxisText {
+    text-anchor: end;
+    stroke: none;
+    fill: $support-fill;
+  }
 
-#freeBodyCanvas>*>*>* {
-    cursor: default !important;
-}
-
-#canvas,
-#freeBodyCanvas {
-    text {
-        text-anchor: middle;
-        stroke: none;
-    }
-
-    .beam {
-        cursor: pointer;
-        stroke: $beam-stroke;
-        fill: $beam-fill;
-        fill-opacity: 0.7;
-
-        &:hover {
-            stroke: $beam-hover;
-            fill: $beam-hover;
-        }
-
-        polygon {
-            stroke: none;
-        }
-
-        path {
-            stroke-width: 2px;
-        }
-    }
-
-    .reaction {
-        cursor: pointer;
-        stroke: $support-fill;
-        fill: $support-fill;
-        stroke-width: 2px;
-
-        &:hover {
-            stroke: $support-fill-hover;
-            stroke-opacity: 0.7;
-            fill: $support-fill-hover;
-            fill-opacity: 0.7;
-        }
-    }
-}
-
-.distrForce,
-.distrMoment {
+  .support,
+  .fix,
+  .slide,
+  .linSpring,
+  .torSpring {
     cursor: pointer;
-    fill-opacity: 1;
+    fill: $support-fill;
+    stroke: $support-fill;
+  }
+}
 
-    polygon {
-        fill-opacity: 0.2;
-    }
+#freeBodyCanvas>*>*>*,
+.sign>* {
+  cursor: default !important;
+}
+
+#canvasBeam,
+#canvasFreeBody {
+  text {
+    text-anchor: middle;
+    stroke: none;
+  }
+
+  .beam {
+    cursor: pointer;
+    stroke: $beam-stroke;
+    fill: $beam-fill;
+    fill-opacity: 0.7;
 
     &:hover {
-        stroke-opacity: 0.7;
-
-        text {
-            fill-opacity: 0.7;
-        }
+      stroke: $beam-hover;
+      fill: $beam-hover;
     }
+
+    polygon {
+      stroke: none;
+    }
+
+    path {
+      stroke-width: 2px;
+    }
+  }
+
+  .reaction {
+    cursor: pointer;
+    stroke: $support-fill;
+    fill: $support-fill;
+    stroke-width: 2px;
+
+    &:hover {
+      stroke: $support-fill-hover;
+      stroke-opacity: 0.7;
+      fill: $support-fill-hover;
+      fill-opacity: 0.7;
+    }
+  }
+
+  .distrForce,
+  .distrMoment {
+    &:hover {
+      stroke-opacity: 0.7;
+
+      text {
+        fill-opacity: 0.7;
+      }
+    }
+  }
+
+  .distrForce {
+    &:hover {
+      stroke: $distrForce-hover;
+      fill: $distrForce-hover;
+
+      text {
+        fill: $distrForce-hover;
+      }
+    }
+  }
+
+  .distrMoment {
+    &:hover {
+      stroke: $distrMoment-hover;
+      fill: $distrMoment-hover;
+
+      text {
+        fill: $distrMoment-hover;
+      }
+    }
+  }
+
+  .force,
+  .moment {
+    &:hover {
+      stroke-opacity: 0.7;
+      fill-opacity: 0.7;
+    }
+  }
+
+  .force {
+    &:hover {
+      stroke: $force-hover;
+      fill: $force-hover;
+    }
+  }
+
+  .moment {
+    &:hover {
+      stroke: $moment-hover;
+      fill: $moment-hover;
+    }
+  }
+
+  .support,
+  .fix,
+  .slide,
+  .linSpring,
+  .torSpring {
+    &:hover {
+      fill: $support-fill-hover;
+      stroke: $support-fill-hover;
+    }
+  }
 }
 
 .distrForce {
-    stroke: $distrForce-stroke;
+  stroke: $distrForce-stroke;
+  fill: $distrForce-stroke;
+  cursor: pointer;
+  fill-opacity: 1;
+
+  polygon {
+    fill-opacity: 0.2;
+  }
+
+  path {
     fill: $distrForce-stroke;
+  }
 
-    path {
-        fill: $distrForce-stroke;
-    }
-
-    text {
-        fill: $distrForce-stroke;
-    }
-
-    &:hover {
-        stroke: $distrForce-hover;
-        fill: $distrForce-hover;
-
-        text {
-            fill: $distrForce-hover;
-        }
-    }
+  text {
+    fill: $distrForce-stroke;
+  }
 }
 
 .distrMoment {
-    stroke: $distrMoment-stroke;
+  stroke: $distrMoment-stroke;
+  fill: $distrMoment-stroke;
+  cursor: pointer;
+  fill-opacity: 1;
+
+  polygon {
+    fill-opacity: 0.2;
+  }
+  
+  path {
+    fill: $distrForce-stroke;
+  }
+
+  text {
     fill: $distrMoment-stroke;
-
-    path {
-        fill: $distrForce-stroke;
-    }
-
-    text {
-        fill: $distrMoment-stroke;
-    }
-
-    &:hover {
-        stroke: $distrMoment-hover;
-        fill: $distrMoment-hover;
-
-        text {
-            fill: $distrMoment-hover;
-        }
-    }
-}
-
-.force,
-.moment {
-    cursor: pointer;
-    fill-opacity: 1;
-
-    &:hover {
-        stroke-opacity: 0.7;
-        fill-opacity: 0.7;
-    }
+  }
 }
 
 .force {
-    stroke: $force-stroke;
-    fill: $force-stroke;
-
-    &:hover {
-        stroke: $force-hover;
-        fill: $force-hover;
-    }
+  stroke: $force-stroke;
+  fill: $force-stroke;
+  cursor: pointer;
+  fill-opacity: 1;
 }
 
 .moment {
-    stroke: $moment-stroke;
-    fill: $moment-stroke;
-
-    &:hover {
-        stroke: $moment-hover;
-        fill: $moment-hover;
-    }
+  stroke: $moment-stroke;
+  fill: $moment-stroke;
+  cursor: pointer;
+  fill-opacity: 1;
 }
 
 .support,
@@ -227,49 +257,49 @@ $toolTip:#616161;
 .slide,
 .linSpring,
 .torSpring {
-    cursor: pointer;
-    fill: $support-fill;
-    stroke: $support-fill;
-
-    &:hover {
-        fill: $support-fill-hover;
-        stroke: $support-fill-hover;
-    }
+  cursor: pointer;
+  fill: $support-fill;
+  stroke: $support-fill;
 }
 
 #svg-toolTip {
-    background: $toolTip;
-    color: #FFFFFF;
-    border-radius: 4px;
-    font-size: 14px;
-    line-height: 22px;
-    display: flex;
-    flex-flow: column;
-    padding: 5px 16px;
-    position: fixed;
-    text-transform: initial;
-    width: auto;
-    opacity: 1;
-    pointer-events: none;
-    margin-top: 8px;
-    margin-left: -16px;
+  background: $toolTip;
+  color: #FFFFFF;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 22px;
+  display: flex;
+  flex-flow: column;
+  padding: 5px 16px;
+  position: fixed;
+  text-transform: initial;
+  width: auto;
+  opacity: 1;
+  pointer-events: none;
+  margin-top: 8px;
+  margin-left: -16px;
 
-    span {
-        flex: 1 1 auto;
-    }
+  span {
+    flex: 1 1 auto;
+  }
 
-    ::before {
-        content: '';
-        display: block;
-        width: 0;
-        height: 0;
-        position: absolute;
+  ::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    position: absolute;
 
-        border-bottom: 8px solid $toolTip;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        left: 8px;
+    border-bottom: 8px solid $toolTip;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    left: 8px;
 
-        top: -8px;
-    }
+    top: -8px;
+  }
+}
+
+#arrow-axisX,
+#arrow-axisY {
+  fill: $support-fill;
 }

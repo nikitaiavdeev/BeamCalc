@@ -5,8 +5,8 @@
         <SVGDefs />
 
         <!-- Graph -->
-        <g :transform="getTransform(graph)">
-          <path :d="getGraphPath(graph)" vector-effect="non-scaling-stroke"/>  
+        <g>
+          <path :d="getGraphPath(graph)"/>  
         </g>
         <!-- Graph -->
 
@@ -16,8 +16,8 @@
         <!-- Beam -->
 
         <!-- Label -->
-        <text class = "yAxisTitle" dominant-baseline = "middle"
-          :x="getX(0) + 2 * getTL" :y="getGaphY(graph.max, graph)">
+        <text class = "yAxisTitle" dy="-0.50em"
+          :x="getX(0) + 2 * getTL" :y="getGaphY(graph.graphMax, graph)">
           {{getYLabel}}
         </text>
         <!-- Label -->
@@ -25,10 +25,10 @@
         <!-- Axis -->
         <g class = "axises" v-if="showAxis">
           <!-- Y -->
-          <line class = "axis"
-            :x1="getX(0)" :y1="getGaphY(graph.min, graph)" :x2="getX(0)" :y2="getGaphY(graph.max, graph)"/>
+          <line class = "yAxis"
+            :x1="getX(0)" :y1="getGaphY(graph.graphMin, graph)" :x2="getX(0)" :y2="getGaphY(graph.graphMax, graph)"/>
           <!-- X -->
-          <line class = "axis"
+          <line class = "xAxis"
             :x1="getX(0)" :y1="getGaphY(0, graph)" :x2="getX(beamL) + getMX * 0.5" :y2="getGaphY(0, graph)"/>
           <text class = "xAxisTitle" dominant-baseline = "baseline"
             :x="getX(beamL) + getMX * 0.5" :y="getGaphY(0, graph) - 3 * getTL">
@@ -38,18 +38,18 @@
           <g v-for="i in getGS + 1" :key="i">
             <!-- Y -->
             <line
-              :x1="getX(0) - getTL" :y1="getGaphY(graph.min + graph.step * (i - 0.5), graph)" 
-              :x2="getX(0)" :y2="getGaphY(graph.min + graph.step * (i - 0.5), graph)" />
-            <text class = "yAxisText" dominant-baseline = "middle"
-              :x="getX(0) - 2 * getTL " :y="getGaphY(graph.min + graph.step * (i - 0.5), graph)">
-                {{formatNum( graph.min + graph.step * (i - 0.5) )}}
+              :x1="getX(0) - getTL" :y1="getGaphY(graph.graphMin + graph.step * (i - 0.5), graph)" 
+              :x2="getX(0)" :y2="getGaphY(graph.graphMin + graph.step * (i - 0.5), graph)" />
+            <text class = "yAxisText" dy="0.25em"
+              :x="getX(0) - 1.5 * getTL " :y="getGaphY(graph.graphMin + graph.step * (i - 0.5), graph)">
+                {{formatNum( graph.graphMin + graph.step * (i - 0.5) )}}
             </text>
 
             <!-- X -->
             <line
               :x1="getX(beamL * i / getGS)" :y1="getGaphY(0, graph)" 
               :x2="getX(beamL * i / getGS)" :y2="getGaphY(0, graph) + getTL" />
-            <text class = "xAxisText" dominant-baseline = "hanging"
+            <text class = "xAxisText" dy="0.50em"
               :x="getX(beamL * i / getGS) " :y="getGaphY(0, graph) + 2 * getTL">
                 {{formatNum( beamL * i / getGS )}}
             </text>
@@ -59,13 +59,13 @@
 
         <!-- Max/Min -->
         <g v-if="showMaxMin">
-          <text class = "textMaxMin" dominant-baseline = "baseline"
-            :x="getX(graph.pathMax.x)" :y="getGaphY(graph.pathMax.y, graph) - getTL/2">
-            {{formatNum( graph.pathMax.y )}}
+          <text class = "textMaxMin" dy="-0.30em"
+            :x="getX(graph.max.x)" :y="getGaphY(graph.max.y, graph) - getTL/2">
+            {{formatNum( graph.max.y )}}
           </text>
-          <text class = "textMaxMin" dominant-baseline = "hanging"
-            :x="getX(graph.pathMin.x)" :y="getGaphY(graph.pathMin.y, graph) + getTL/2">
-            {{formatNum( graph.pathMin.y )}}
+          <text class = "textMaxMin" dy="0.80em"
+            :x="getX(graph.min.x)" :y="getGaphY(graph.min.y, graph) + getTL/2">
+            {{formatNum( graph.min.y )}}
           </text>
         </g>
 
@@ -73,13 +73,13 @@
         <g v-if="showLoads">
           <g v-for="(f, i) in loads" :key="f.type + i">
             <g v-if="f.type === 'Distributed Force'" class="distrForce">
-              <use :xlink:href="f.valA > 0 ? '#pos-dis-force' : '#neg-dis-force'" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
-              <use :xlink:href="f.valB > 0 ? '#pos-dis-force' : '#neg-dis-force'" :x="getX(f.locB)" :y="getGaphY(0, graph)" />
+              <use :xlink:href="getUseTag('Distributed Force A', f)" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
+              <use :xlink:href="getUseTag('Distributed Force B', f)" :x="getX(f.locB)" :y="getGaphY(0, graph)" />
               <polygon :points="getPath('distributed polygon graph', f, graph)"></polygon>
             </g>
             <g v-if="f.type === 'Distributed Moment'" class="distrMoment">
-              <use :xlink:href="f.valA > 0 ? '#pos-dis-moment' : '#neg-dis-moment'" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
-              <use :xlink:href="f.valB > 0 ? '#pos-dis-moment' : '#neg-dis-moment'" :x="getX(f.locB)" :y="getGaphY(0, graph)" />
+              <use :xlink:href="getUseTag('Distributed Moment A', f)" :x="getX(f.locA)" :y="getGaphY(0, graph)" />
+              <use :xlink:href="getUseTag('Distributed Moment B', f)" :x="getX(f.locB)" :y="getGaphY(0, graph)" />
               <polygon :points="getPath('distributed polygon graph', f, graph)"></polygon>
             </g>
             <g v-if="f.type === 'Force'" class="force">
@@ -131,6 +131,20 @@
   import SVGToolTip from './SVGToolTip'
   import SVGDefs from './SVGDefs'
 
+  const findClosest = (elm, selector) => {
+    if (Object.prototype.hasOwnProperty.call(elm, 'closest')){
+      return elm.closest(selector)
+    } else {
+      if (!elm) return null;
+      if (elm.tagName == selector) return elm;
+      if (!elm.parentElement) {
+        return null
+      } else{
+        return findClosest(elm.parentElement, selector)
+      } 
+    }
+}
+
   export default {
     props: {
       graphID: String
@@ -174,7 +188,7 @@
         }
       },
       ...mapMutations(['updateQMVGraphs']),
-      ...mapGetters(['getX', 'getY', 'getGaphY', 'getTransform', 'getPath', 'getGH', 'getGS', 'getTL', 'getMX']),
+      ...mapGetters(['getX', 'getY', 'getGaphY', 'getTransform', 'getPath', 'getUseTag', 'getGraphPath', 'getGH', 'getGS', 'getTL', 'getMX']),
       ...mapState({
         supports: state => state.analysis.supports,
         loads: state => state.analysis.loads,
@@ -191,28 +205,27 @@
     },
 
     methods: {
-      getGraphPath: (graph) => {
-        return 'M' + graph.arr.join('L');
-      },
-
       onHover(e) {
         const
-          caller = e.target.closest("svg"),
+          caller = findClosest(e.target,"svg");
+
+        if(!caller) return null;
+
+        const 
           rect = caller.getBoundingClientRect(),
           graph = caller.id === 'qCanvas' ? this.graphQ : caller.id === 'mCanvas' ? this.graphM : this.graphV,
           x = e.offsetX,
           y = e.offsetY;
-
         let abs, minX, minY, gX, gY, minAbs = null;
 
-        for (const p of graph.arr) {
-          gX = this.getX(p[0]);
-          gY = this.getGaphY(p[1], graph);
+        for (let i = 0; i<graph.x.length; i++) {
+          gX = this.getX(graph.x[i]);
+          gY = this.getGaphY(graph.y[i], graph);
           abs = Math.sqrt((gX - x) ** 2 + (gY - y) ** 2);
           if ((minAbs === null) || (abs < minAbs)) {
             minAbs = abs;
-            minX = p[0];
-            minY = p[1];
+            minX = graph.x[i];
+            minY = graph.y[i];
           }
         }
 
@@ -240,4 +253,5 @@
       },
     }
   }
+
 </script>

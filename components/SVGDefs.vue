@@ -1,7 +1,9 @@
 <template>
   <defs>
-    <marker id="arrow-axis" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="10" markerHeight="10"
-      orient="auto-start-reverse">
+    <marker id="arrow-axisY" viewBox="0 0 10 10" refX="5" refY="10" markerWidth="10" markerHeight="10">
+      <path d="M0,10L5,0L10,10z" stroke="none" />
+    </marker>
+    <marker id="arrow-axisX" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="10" markerHeight="10">
       <path d="M0,0L10,5L0,10z" stroke="none" />
     </marker>
     <g id="pos-force">
@@ -12,6 +14,7 @@
       <path d="M-5,-10L0,0L5,-10z" stroke="none" />
       <path :d="'M0,-10v' + ( -getVH + 10 )" stroke-width="2" />
     </g>
+
     <g id="pos-dis-force">
       <path d="M-5,10L0,0L5,10z" stroke="none" />
       <path :d="'M0,10v' + ( getVH*0.75 - 10 )" stroke-width="2" />
@@ -20,6 +23,15 @@
       <path d="M-5,-10L0,0L5,-10z" stroke="none" />
       <path :d="'M0,-10v' + ( -getVH*0.75 + 10 )" stroke-width="2" />
     </g>
+    <g id="pos-dis-force0.5">
+      <path d="M-5,10L0,0L5,10z" stroke="none" />
+      <path :d="'M0,10v' + ( getVH*0.5 - 10 )" stroke-width="2" />
+    </g>
+    <g id="neg-dis-force0.5">
+      <path d="M-5,-10L0,0L5,-10z" stroke="none" />
+      <path :d="'M0,-10v' + ( -getVH*0.5 + 10 )" stroke-width="2" />
+    </g>
+
     <g id="pos-dis-moment">
       <path d="M-5,10L0,0L5,10z" stroke="none" />
       <path d="M-5,20L0,10L5,20z" stroke="none" />
@@ -30,6 +42,17 @@
       <path d="M-5,-20L0,-10L5,-20z" stroke="none" />
       <path :d="'M0,-10v' + ( -getVH*0.75 + 10 )" stroke-width="2" />
     </g>
+    <g id="pos-dis-moment0.5">
+      <path d="M-5,10L0,0L5,10z" stroke="none" />
+      <path d="M-5,20L0,10L5,20z" stroke="none" />
+      <path :d="'M0,10v' + ( getVH*0.5 - 10 )" stroke-width="2" />
+    </g>
+    <g id="neg-dis-moment0.5">
+      <path d="M-5,-10L0,0L5,-10z" stroke="none" />
+      <path d="M-5,-20L0,-10L5,-20z" stroke="none" />
+      <path :d="'M0,-10v' + ( -getVH*0.5 + 10 )" stroke-width="2" />
+    </g>
+
     <g id="pos-moment">
       <path d="M-5,0L0,-10L5,0z" stroke="none"
         :transform="'translate(' + (getVH / 2 * 0.7071) + ' ' + (getVH / 2 * 0.7071) + ') rotate(45)'" />
