@@ -100,7 +100,7 @@
             <!-- Loads -->
 
             <!-- Reactions -->
-            <g v-if="title == 'Free Body'">
+            <g v-if="title == 'FreeBody'">
               <g v-for="(s, i) in supports" :key="s.type + i">
                 <g v-if="s.type === 'Fixed' || s.type === 'Support' || s.type === 'Linear Spring'" class="reaction" @mouseover.native:="onHover" @mouseout.native:="onHoverCancel">
                   <use :xlink:href="s.rF >= 0 ? '#pos-force' : '#neg-force'" :x="getX(s.locA)" :y="getBeamY( Math.sign(s.rF) )" />
