@@ -1,4 +1,8 @@
-# my-app
+# BeamCalc
+
+## Description
+
+Free Online beam calculator that calculates the reactions, deflection and draws bending moment and shear force diagrams with unlimited supports, interactive diagrams, and instant results.
 
 ## Project setup
 ```
@@ -19,6 +23,3 @@ npm run build
 ```
 npm run lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
