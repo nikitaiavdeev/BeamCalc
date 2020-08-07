@@ -100,7 +100,7 @@
             <v-row>
               <v-col>
                 <v-text-field v-model="dialog.item.locA" label="Support location" suffix="in" :rules="[ruleLocA]"
-                  required></v-text-field>
+                  required @input="setSliderLocation"></v-text-field>
               </v-col>
               <v-col v-if="dialog.item.type === 'Linear Spring'">
                 <v-text-field v-model="dialog.item.stiff" label="Spring stiffness" suffix="lb/in" :rules="[ruleValN0]"
@@ -154,6 +154,7 @@
     data: () => ({
       isValid: false,
       slider: 0,
+      sliderMove: true,
       ticksLabels: ['left', ...Array(9), 'middle', ...Array(9), 'right'],
     }),
 
@@ -190,9 +191,17 @@
       },
 
       setSupportLocation() {
-        Object.assign(this.dialog.item, {
-          'locA': formatNumer(this.slider)
-        });
+        if ( (this.sliderMove) || (this.dialog.item.locA > this.beamL) ){
+          Object.assign(this.dialog.item, {
+            'locA': formatNumer(this.slider)
+          });
+        }          
+        this.sliderMove = true;
+      },
+
+      setSliderLocation() {
+        this.sliderMove = false;
+        this.slider = this.dialog.item.locA / this.beamL * 10;
       },
 
       close() {

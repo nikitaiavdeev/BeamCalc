@@ -50,7 +50,7 @@
 
     <span>{{ this.$store.state.appVersion }}</span>
       <v-btn icon dense @click="sendMail">
-        <v-icon small>mdi-help</v-icon>
+        <v-icon small>mdi-github</v-icon>
       </v-btn>
   </v-app-bar>
 </template>
@@ -98,7 +98,7 @@
         this.$store.commit('solveBeam');
       },
       sendMail(){
-        window.location.href = "mailto:nikita.i.avdeev@gmail.com";
+        window.location.href = "https://github.com/nikitaiavdeev/BeamCalc";
       }
     }
   }
