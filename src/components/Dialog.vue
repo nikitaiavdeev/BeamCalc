@@ -191,7 +191,7 @@
       },
 
       setSupportLocation() {
-        if ( (this.sliderMove) || (this.dialog.item.locA > this.beamL) ){
+        if ( (this.sliderMove) || (this.dialog.item.locA > this.beamL) || (this.dialog.item.locA < 0)){
           Object.assign(this.dialog.item, {
             'locA': formatNumer(this.slider)
           });
